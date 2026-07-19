@@ -1,0 +1,49 @@
+name: RTL433 Acurite Bridge
+version: "0.1.0"
+slug: rtl433_acurite_bridge
+description: Modern rtl_433 MQTT bridge for Acurite weather stations.
+url: https://github.com/dcsubie/RTL433-Acurite-Bridge
+
+arch:
+  - amd64
+  - aarch64
+  - armv7
+
+startup: services
+boot: auto
+
+init: false
+
+host_network: true
+
+usb: true
+
+map:
+  - config:rw
+
+options:
+  mqtt_host: homeassistant
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  mqtt_topic: rtl_433
+  whitelist: []
+  protocols:
+    - 11
+    - 40
+    - 41
+    - 55
+    - 74
+  units: si
+
+schema:
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str?
+  mqtt_password: password?
+  mqtt_topic: str
+  whitelist:
+    - int
+  protocols:
+    - int
+  units: list(si|customary)
