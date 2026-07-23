@@ -7,6 +7,7 @@ import sys
 from config import load_config
 from mqtt import MQTTBridge
 from sensors import SensorReading
+from discovery import DiscoveryPublisher
 
 logging.basicConfig(
     level=logging.INFO,
