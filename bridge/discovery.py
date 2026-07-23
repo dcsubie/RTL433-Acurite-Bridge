@@ -2,19 +2,25 @@
 Home Assistant MQTT Discovery support.
 """
 
-import json
 import logging
 
-from sensors import SensorReading
 from mqtt import MQTTBridge
+from sensors import SensorReading
 
 LOGGER = logging.getLogger("rtl433-bridge.discovery")
 
 
 class DiscoveryPublisher:
-    def __init__(self, mqtt: MQTTBridge, discovery_prefix: str = "homeassistant"):
+    def __init__(
+        self,
+        mqtt: MQTTBridge,
+        topic_root: str,
+        discovery_prefix: str = "homeassistant",
+    ):
         self.mqtt = mqtt
+        self.topic_root = topic_root
         self.discovery_prefix = discovery_prefix
+        self.discovered: set[str] = set()
 
     def publish_sensor(
         self,
@@ -26,6 +32,7 @@ class DiscoveryPublisher:
         state_class: str | None = "measurement",
         icon: str | None = None,
     ) -> None:
+        """Publish a Home Assistant MQTT Discovery entity."""
 
         unique_id = f"{sensor.sensor_id}_{unique_suffix}"
 
@@ -34,13 +41,13 @@ class DiscoveryPublisher:
             f"{sensor.sensor_id}/{unique_suffix}/config"
         )
 
-        state_topic = sensor.base_topic("rtl_433")
+        state_topic = sensor.base_topic(self.topic_root)
 
         payload = {
             "name": name,
             "unique_id": unique_id,
             "state_topic": state_topic,
-            "value_template": "{{ value_json.%s }}" % unique_suffix,
+            "value_template": f"{{{{ value_json.{unique_suffix} }}}}",
             "device": {
                 "identifiers": [sensor.sensor_id],
                 "name": sensor.device_name(),
@@ -61,89 +68,109 @@ class DiscoveryPublisher:
         if icon:
             payload["icon"] = icon
 
-        self.mqtt.client.publish(
+        self.mqtt.publish_json(
             config_topic,
-            json.dumps(payload),
+            payload,
             retain=True,
         )
 
-        LOGGER.info("Published discovery for %s", name)
+        LOGGER.info("Published discovery for %s", unique_id)
 
-    def publish_all(self, sensor: SensorReading):
+    def publish_all(self, sensor: SensorReading) -> None:
+        """Publish discovery for every available sensor value."""
 
-        if sensor.temperature is not None:
-            self.publish_sensor(
-                sensor,
+        sensor_map = [
+            (
+                "temperature",
                 "Temperature",
                 "temperature",
-                device_class="temperature",
-                unit="°C",
-            )
-
-        if sensor.humidity is not None:
-            self.publish_sensor(
-                sensor,
+                "°C",
+                "measurement",
+                None,
+            ),
+            (
+                "humidity",
                 "Humidity",
                 "humidity",
-                device_class="humidity",
-                unit="%",
-            )
-
-        if sensor.wind_speed is not None:
-            self.publish_sensor(
-                sensor,
-                "Wind Speed",
+                "%",
+                "measurement",
+                None,
+            ),
+            (
                 "wind_speed",
-                unit="km/h",
-            )
-
-        if sensor.wind_gust is not None:
-            self.publish_sensor(
-                sensor,
-                "Wind Gust",
+                "Wind Speed",
+                None,
+                "km/h",
+                "measurement",
+                None,
+            ),
+            (
                 "wind_gust",
-                unit="km/h",
-            )
-
-        if sensor.wind_direction is not None:
-            self.publish_sensor(
-                sensor,
-                "Wind Direction",
+                "Wind Gust",
+                None,
+                "km/h",
+                "measurement",
+                None,
+            ),
+            (
                 "wind_direction",
-                unit="°",
-            )
-
-        if sensor.rain_total is not None:
-            self.publish_sensor(
-                sensor,
-                "Rain Total",
+                "Wind Direction",
+                None,
+                "°",
+                "measurement",
+                None,
+            ),
+            (
                 "rain_total",
-                device_class="precipitation",
-                unit="mm",
-            )
-
-        if sensor.pressure is not None:
-            self.publish_sensor(
-                sensor,
-                "Pressure",
+                "Rain Total",
+                "precipitation",
+                "mm",
+                "measurement",
+                None,
+            ),
+            (
                 "pressure",
-                device_class="atmospheric_pressure",
-                unit="hPa",
-            )
-
-        if sensor.battery_ok is not None:
-            self.publish_sensor(
-                sensor,
-                "Battery",
+                "Pressure",
+                "atmospheric_pressure",
+                "hPa",
+                "measurement",
+                None,
+            ),
+            (
                 "battery_ok",
-                device_class="battery",
-            )
-
-        if sensor.rssi is not None:
-            self.publish_sensor(
-                sensor,
-                "Signal Strength",
+                "Battery",
+                "battery",
+                None,
+                None,
+                None,
+            ),
+            (
                 "rssi",
-                icon="mdi:wifi",
-                state_class=None,
-            )
+                "Signal Strength",
+                None,
+                None,
+                None,
+                "mdi:wifi",
+            ),
+        ]
+
+        for field, name, device_class, unit, state_class, icon in sensor_map:
+            if getattr(sensor, field) is not None:
+                self.publish_sensor(
+                    sensor=sensor,
+                    name=name,
+                    unique_suffix=field,
+                    device_class=device_class,
+                    unit=unit,
+                    state_class=state_class,
+                    icon=icon,
+                )
+
+    def publish_once(self, sensor: SensorReading) -> None:
+        """Only publish discovery once per sensor."""
+
+        if sensor.sensor_id in self.discovered:
+            return
+
+        self.publish_all(sensor)
+        self.discovered.add(sensor.sensor_id)
