@@ -14,13 +14,18 @@ class MQTTBridge:
         port: int,
         username: str = "",
         password: str = "",
-    ):
+    ) -> None:
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
         if username:
             self.client.username_pw_set(username, password)
 
-        self.client.connect(host, port, 60)
+        try:
+            self.client.connect(host, port, 60)
+        except Exception as err:
+            LOGGER.exception("Unable to connect to MQTT broker: %s", err)
+            raise
+
         self.client.loop_start()
 
         LOGGER.info("Connected to MQTT broker %s:%s", host, port)
@@ -29,12 +34,49 @@ class MQTTBridge:
         self,
         topic: str,
         payload: dict[str, Any],
+        retain: bool = False,
     ) -> None:
-        self.client.publish(
+        result = self.client.publish(
             topic,
             json.dumps(payload),
-            retain=False,
+            retain=retain,
         )
+
+        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+            LOGGER.warning(
+                "Failed to publish %s (rc=%s)",
+                topic,
+                result.rc,
+            )
+        else:
+            LOGGER.debug("Published %s", topic)
+
+    def publish_json(
+        self,
+        topic: str,
+        payload: dict[str, Any],
+        retain: bool = False,
+    ) -> None:
+        self.publish_sensor(topic, payload, retain)
+
+    def publish_text(
+        self,
+        topic: str,
+        payload: str,
+        retain: bool = False,
+    ) -> None:
+        result = self.client.publish(
+            topic,
+            payload,
+            retain=retain,
+        )
+
+        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+            LOGGER.warning(
+                "Failed to publish %s (rc=%s)",
+                topic,
+                result.rc,
+            )
 
     def stop(self) -> None:
         self.client.loop_stop()
