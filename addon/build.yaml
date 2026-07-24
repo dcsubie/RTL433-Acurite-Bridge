@@ -1,0 +1,10 @@
+build_from:
+  amd64: ghcr.io/home-assistant/amd64-base:3.22
+  aarch64: ghcr.io/home-assistant/aarch64-base:3.22
+  armv7: ghcr.io/home-assistant/armv7-base:3.22
+
+labels:
+  org.opencontainers.image.title: "RTL433 Acurite Bridge"
+  org.opencontainers.image.description: "Modern rtl_433 bridge for Home Assistant"
+  org.opencontainers.image.source: "https://github.com/dcsubie/RTL433-Acurite-Bridge"
+  org.opencontainers.image.licenses: "MIT"

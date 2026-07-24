@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Test output
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Logs
+*.log
+
+# Home Assistant Builder
+*.tar
+*.tar.gz
+
+# Docker
+.docker/
+
+# Temporary files
+*.tmp
+*.swp
+
+# Environment variables
+.env
