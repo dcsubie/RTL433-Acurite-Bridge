@@ -14,11 +14,6 @@ WORKDIR /app
 # Copy Python application
 COPY bridge/ /app/bridge/
 
-# Copy Python requirements
-COPY requirements.txt /app/requirements.txt
-
-# Install Python dependencies
-RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 # Copy startup script
 COPY run.sh /run.sh
