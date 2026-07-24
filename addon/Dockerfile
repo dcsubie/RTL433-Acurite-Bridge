@@ -11,16 +11,17 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /app
 
-# Copy bridge application
-COPY bridge/ /app/
+# Copy Python application
+COPY bridge/ /app/bridge/
 
-# Install Python dependencies (to be added later)
-RUN if [ -f requirements.txt ]; then \
-        pip3 install --no-cache-dir -r requirements.txt; \
-    fi
+# Copy Python requirements
+COPY requirements.txt /app/requirements.txt
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 # Copy startup script
-COPY addon/run.sh /run.sh
+COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
-CMD ["/run.sh"]
+ENTRYPOINT ["/run.sh"]
