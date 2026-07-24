@@ -5,7 +5,7 @@ FROM ${BUILD_FROM}
 RUN apk add --no-cache \
     rtl_433 \
     python3 \
-    py3-pip \
+    py3-paho-mqtt \
     bash
 
 # Set working directory
