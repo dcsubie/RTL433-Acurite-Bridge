@@ -26,12 +26,7 @@ options:
   mqtt_password: ""
   mqtt_topic: rtl_433
   whitelist: []
-  protocols:
-    - 11
-    - 40
-    - 41
-    - 55
-    - 74
+  protocols: [11, 40, 41, 55, 74]
   units: si
 
 schema:
