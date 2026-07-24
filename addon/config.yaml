@@ -13,9 +13,7 @@ startup: services
 boot: auto
 
 init: false
-
 host_network: true
-
 usb: true
 
 map:
@@ -46,4 +44,4 @@ schema:
     - int
   protocols:
     - int
-  units: list(si|customary)
+  units: str
