@@ -20,7 +20,7 @@ class DiscoveryPublisher:
         self.mqtt = mqtt
         self.topic_root = topic_root
         self.discovery_prefix = discovery_prefix
-        self.discovered: set[str] = set()
+        self.discovered: set[tuple[str, str]] = set()
 
     def publish_sensor(
         self,
@@ -31,13 +31,17 @@ class DiscoveryPublisher:
         unit: str | None = None,
         state_class: str | None = "measurement",
         icon: str | None = None,
+        component: str = "sensor",
+        value_template: str | None = None,
+        payload_on: str | None = None,
+        payload_off: str | None = None,
     ) -> None:
         """Publish a Home Assistant MQTT Discovery entity."""
 
         unique_id = f"{sensor.sensor_id}_{unique_suffix}"
 
         config_topic = (
-            f"{self.discovery_prefix}/sensor/"
+            f"{self.discovery_prefix}/{component}/"
             f"{sensor.sensor_id}/{unique_suffix}/config"
         )
 
@@ -47,7 +51,8 @@ class DiscoveryPublisher:
             "name": name,
             "unique_id": unique_id,
             "state_topic": state_topic,
-            "value_template": f"{{{{ value_json.{unique_suffix} }}}}",
+            "value_template": value_template
+            or f"{{{{ value_json.{unique_suffix} }}}}",
             "device": {
                 "identifiers": [sensor.sensor_id],
                 "name": sensor.device_name(),
@@ -67,6 +72,12 @@ class DiscoveryPublisher:
 
         if icon:
             payload["icon"] = icon
+
+        if payload_on is not None:
+            payload["payload_on"] = payload_on
+
+        if payload_off is not None:
+            payload["payload_off"] = payload_off
 
         self.mqtt.publish_json(
             config_topic,
@@ -137,14 +148,6 @@ class DiscoveryPublisher:
                 None,
             ),
             (
-                "battery_ok",
-                "Battery",
-                "battery",
-                None,
-                None,
-                None,
-            ),
-            (
                 "rssi",
                 "Signal Strength",
                 None,
@@ -155,7 +158,8 @@ class DiscoveryPublisher:
         ]
 
         for field, name, device_class, unit, state_class, icon in sensor_map:
-            if getattr(sensor, field) is not None:
+            discovery_key = (sensor.sensor_id, field)
+            if getattr(sensor, field) is not None and discovery_key not in self.discovered:
                 self.publish_sensor(
                     sensor=sensor,
                     name=name,
@@ -165,12 +169,26 @@ class DiscoveryPublisher:
                     state_class=state_class,
                     icon=icon,
                 )
+                self.discovered.add(discovery_key)
 
-    def publish_once(self, sensor: SensorReading) -> None:
-        """Only publish discovery once per sensor."""
+        battery_key = (sensor.sensor_id, "battery_ok")
+        if sensor.battery_ok is not None and battery_key not in self.discovered:
+            self.publish_sensor(
+                sensor=sensor,
+                name="Battery",
+                unique_suffix="battery_ok",
+                device_class="battery",
+                state_class=None,
+                component="binary_sensor",
+                value_template=(
+                    "{{ 'OFF' if value_json.battery_ok else 'ON' }}"
+                ),
+                payload_on="ON",
+                payload_off="OFF",
+            )
+            self.discovered.add(battery_key)
 
-        if sensor.sensor_id in self.discovered:
-            return
+    def publish_available(self, sensor: SensorReading) -> None:
+        """Publish discovery for values not previously announced for this sensor."""
 
         self.publish_all(sensor)
-        self.discovered.add(sensor.sensor_id)

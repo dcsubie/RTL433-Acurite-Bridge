@@ -42,10 +42,6 @@ for protocol in "${PROTOCOLS[@]}"; do
     [[ -n "$protocol" ]] && RTL_ARGS+=(-R "$protocol")
 done
 
-for id in "${WHITELIST[@]}"; do
-    [[ -n "$id" ]] && RTL_ARGS+=(-K "$id")
-done
-
 if [[ "$UNITS" == "si" ]]; then
     RTL_ARGS+=(-C si)
 fi

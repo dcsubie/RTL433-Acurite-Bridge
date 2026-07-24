@@ -20,7 +20,7 @@ map:
   - config:rw
 
 options:
-  mqtt_host: homeassistant
+  mqtt_host: core-mosquitto
   mqtt_port: 1883
   mqtt_username: ""
   mqtt_password: ""

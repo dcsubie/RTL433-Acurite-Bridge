@@ -24,10 +24,19 @@ def process_message(
     mqtt: MQTTBridge,
     discovery: DiscoveryPublisher,
     topic_root: str,
+    whitelist: tuple[str, ...] = (),
 ) -> None:
     """Convert an rtl_433 JSON message into a SensorReading and publish it."""
 
-    sensor_id = str(message.get("id"))
+    if "id" not in message:
+        LOGGER.warning("Skipping rtl_433 message without a sensor id: %s", message)
+        return
+
+    sensor_id = str(message["id"])
+
+    if whitelist and sensor_id not in whitelist:
+        LOGGER.debug("Skipping sensor %s because it is not whitelisted", sensor_id)
+        return
     model = message.get("model", "Unknown")
 
     reading = SensorReading(
@@ -47,8 +56,8 @@ def process_message(
         channel=str(message["channel"]) if "channel" in message else None,
     )
 
-    # Publish Home Assistant discovery (only once per sensor)
-    discovery.publish_once(reading)
+    # Publish Home Assistant discovery for values not previously announced.
+    discovery.publish_available(reading)
 
     # Publish sensor state
     mqtt.publish_sensor(
@@ -95,6 +104,7 @@ def main() -> None:
                     mqtt,
                     discovery,
                     config.mqtt_topic,
+                    config.whitelist,
                 )
             except Exception:
                 LOGGER.exception("Error processing rtl_433 message")
