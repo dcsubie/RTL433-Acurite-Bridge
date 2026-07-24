@@ -15,7 +15,9 @@ class MQTTBridge:
         username: str = "",
         password: str = "",
     ) -> None:
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        # No callbacks are registered, so use the constructor shared by
+        # paho-mqtt 1.x and 2.x.  CallbackAPIVersion was introduced in 2.x.
+        self.client = mqtt.Client()
 
         if username:
             self.client.username_pw_set(username, password)
