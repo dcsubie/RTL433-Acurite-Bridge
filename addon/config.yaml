@@ -1,5 +1,5 @@
 name: RTL433 Acurite Bridge
-version: "0.1.1"
+version: "0.1.2"
 slug: rtl433_acurite_bridge
 description: Modern rtl_433 MQTT bridge for Acurite weather stations.
 url: https://github.com/dcsubie/RTL433-Acurite-Bridge

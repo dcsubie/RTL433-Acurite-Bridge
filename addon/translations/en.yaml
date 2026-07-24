@@ -1,0 +1,25 @@
+configuration:
+  mqtt_host:
+    name: MQTT broker host
+    description: Hostname or IP address of the MQTT broker. Use core-mosquitto for the Mosquitto Broker add-on.
+  mqtt_port:
+    name: MQTT broker port
+    description: Network port for the MQTT broker, normally 1883.
+  mqtt_username:
+    name: MQTT username
+    description: Username used to authenticate with the MQTT broker, when required.
+  mqtt_password:
+    name: MQTT password
+    description: Password used to authenticate with the MQTT broker, when required.
+  mqtt_topic:
+    name: MQTT topic root
+    description: Topic prefix used when publishing readings for each sensor.
+  whitelist:
+    name: Sensor whitelist
+    description: Optional sensor IDs to publish. Leave empty to publish every detected sensor.
+  protocols:
+    name: RTL433 protocols
+    description: Decoder protocol numbers to enable. Restrict this list to reduce noise and unnecessary decoding.
+  units:
+    name: Units
+    description: Use si for metric measurements.
