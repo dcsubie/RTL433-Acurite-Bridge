@@ -1,4 +1,4 @@
-# RTL433-Acurite-Bridge
+no# RTL433-Acurite-Bridge
 
 A modern Home Assistant add-on that bridges **rtl_433** weather station data into Home Assistant using MQTT Discovery.
 
@@ -43,5 +43,3 @@ Current milestone:
 - Protocol Selection
 
 ## License
-
-MIT
