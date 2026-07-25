@@ -43,3 +43,4 @@ Current milestone:
 - Protocol Selection
 
 ## License
+Copyright (c) 2026 Joshua Ellis
