@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3
+
+- Version bump so Home Assistant offers an update from earlier 0.1.2 builds
+- Includes the MQTT modernization already landed on main: discovery origin,
+  availability/last-will, retained states, Supervisor MQTT auto-config, and
+  improved sensor metadata
+
 ## 0.1.2
 
 - Add MQTT discovery `origin` and `default_entity_id` for current Home Assistant
