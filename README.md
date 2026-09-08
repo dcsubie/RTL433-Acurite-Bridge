@@ -1,4 +1,4 @@
-no# RTL433-Acurite-Bridge
+# RTL433-Acurite-Bridge
 
 A modern Home Assistant add-on that bridges **rtl_433** weather station data into Home Assistant using MQTT Discovery.
 
@@ -42,5 +42,16 @@ Current milestone:
 - Friendly Names
 - Protocol Selection
 
+## Security
+
+MQTT credentials and other secrets belong in the Home Assistant add-on configuration UI (or your local secrets), never in this repository, issues, or pull requests.
+
+If you believe you found a security issue, please report it privately instead of opening a public issue that includes credentials, broker details, or device identifiers.
+
+When sharing screenshots or logs, redact usernames, passwords, hostnames, IPs, and sensor/device IDs.
+
 ## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
 Copyright (c) 2026 Joshua Ellis
