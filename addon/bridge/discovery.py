@@ -4,7 +4,11 @@ Home Assistant MQTT Discovery support.
 
 import logging
 
-from mqtt import MQTTBridge
+from mqtt import (
+    MQTTBridge,
+    PAYLOAD_AVAILABLE,
+    PAYLOAD_NOT_AVAILABLE,
+)
 from sensors import SensorReading
 
 LOGGER = logging.getLogger("rtl433-bridge.discovery")
@@ -15,10 +19,18 @@ class DiscoveryPublisher:
         self,
         mqtt: MQTTBridge,
         topic_root: str,
+        availability_topic: str,
+        origin_name: str,
+        origin_version: str,
+        origin_support_url: str,
         discovery_prefix: str = "homeassistant",
     ):
         self.mqtt = mqtt
         self.topic_root = topic_root
+        self.availability_topic = availability_topic
+        self.origin_name = origin_name
+        self.origin_version = origin_version
+        self.origin_support_url = origin_support_url
         self.discovery_prefix = discovery_prefix
         self.discovered: set[tuple[str, str]] = set()
 
@@ -35,8 +47,13 @@ class DiscoveryPublisher:
         value_template: str | None = None,
         payload_on: str | None = None,
         payload_off: str | None = None,
+        entity_category: str | None = None,
     ) -> None:
-        """Publish a Home Assistant MQTT Discovery entity."""
+        """Publish a Home Assistant MQTT Discovery entity.
+
+        Discovery topic layout is unchanged so existing entities keep working:
+        ``{prefix}/{component}/{sensor_id}/{unique_suffix}/config``
+        """
 
         unique_id = f"{sensor.sensor_id}_{unique_suffix}"
 
@@ -50,14 +67,24 @@ class DiscoveryPublisher:
         payload = {
             "name": name,
             "unique_id": unique_id,
+            "default_entity_id": f"{component}.{unique_id}",
             "state_topic": state_topic,
             "value_template": value_template
             or f"{{{{ value_json.{unique_suffix} }}}}",
+            "availability_topic": self.availability_topic,
+            "payload_available": PAYLOAD_AVAILABLE,
+            "payload_not_available": PAYLOAD_NOT_AVAILABLE,
+            "origin": {
+                "name": self.origin_name,
+                "sw_version": self.origin_version,
+                "support_url": self.origin_support_url,
+            },
             "device": {
                 "identifiers": [sensor.sensor_id],
                 "name": sensor.device_name(),
                 "manufacturer": "Acurite",
                 "model": sensor.model,
+                "sw_version": self.origin_version,
             },
         }
 
@@ -72,6 +99,9 @@ class DiscoveryPublisher:
 
         if icon:
             payload["icon"] = icon
+
+        if entity_category:
+            payload["entity_category"] = entity_category
 
         if payload_on is not None:
             payload["payload_on"] = payload_on
@@ -98,6 +128,7 @@ class DiscoveryPublisher:
                 "°C",
                 "measurement",
                 None,
+                None,
             ),
             (
                 "humidity",
@@ -106,21 +137,24 @@ class DiscoveryPublisher:
                 "%",
                 "measurement",
                 None,
+                None,
             ),
             (
                 "wind_speed",
                 "Wind Speed",
-                None,
+                "wind_speed",
                 "km/h",
                 "measurement",
+                None,
                 None,
             ),
             (
                 "wind_gust",
                 "Wind Gust",
-                None,
+                "wind_speed",
                 "km/h",
                 "measurement",
+                None,
                 None,
             ),
             (
@@ -129,6 +163,7 @@ class DiscoveryPublisher:
                 None,
                 "°",
                 "measurement",
+                "mdi:compass",
                 None,
             ),
             (
@@ -136,7 +171,8 @@ class DiscoveryPublisher:
                 "Rain Total",
                 "precipitation",
                 "mm",
-                "measurement",
+                "total_increasing",
+                None,
                 None,
             ),
             (
@@ -146,18 +182,37 @@ class DiscoveryPublisher:
                 "hPa",
                 "measurement",
                 None,
+                None,
             ),
             (
                 "rssi",
                 "Signal Strength",
                 None,
                 None,
-                None,
+                "measurement",
                 "mdi:wifi",
+                "diagnostic",
+            ),
+            (
+                "snr",
+                "Signal-to-Noise",
+                None,
+                "dB",
+                "measurement",
+                "mdi:signal",
+                "diagnostic",
             ),
         ]
 
-        for field, name, device_class, unit, state_class, icon in sensor_map:
+        for (
+            field,
+            name,
+            device_class,
+            unit,
+            state_class,
+            icon,
+            entity_category,
+        ) in sensor_map:
             discovery_key = (sensor.sensor_id, field)
             if getattr(sensor, field) is not None and discovery_key not in self.discovered:
                 self.publish_sensor(
@@ -168,6 +223,7 @@ class DiscoveryPublisher:
                     unit=unit,
                     state_class=state_class,
                     icon=icon,
+                    entity_category=entity_category,
                 )
                 self.discovered.add(discovery_key)
 

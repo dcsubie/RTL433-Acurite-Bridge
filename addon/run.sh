@@ -16,7 +16,20 @@ UNITS=$(bashio::config 'units')
 mapfile -t PROTOCOLS < <(bashio::config 'protocols[]')
 mapfile -t WHITELIST < <(bashio::config 'whitelist[]')
 
-# Log configuration
+# Prefer Supervisor MQTT service discovery when using the default broker
+# host and no username was set in the add-on options. Explicit credentials
+# or a custom broker host always win.
+if [[ "${MQTT_HOST}" == "core-mosquitto" ]] \
+    && [[ -z "${MQTT_USERNAME}" ]] \
+    && bashio::services.available "mqtt"; then
+    MQTT_HOST=$(bashio::services "mqtt" "host")
+    MQTT_PORT=$(bashio::services "mqtt" "port")
+    MQTT_USERNAME=$(bashio::services "mqtt" "username")
+    MQTT_PASSWORD=$(bashio::services "mqtt" "password")
+    bashio::log.info "Configured MQTT from Supervisor service discovery"
+fi
+
+# Log configuration (never log the password)
 bashio::log.info "MQTT Host: ${MQTT_HOST}"
 bashio::log.info "MQTT Port: ${MQTT_PORT}"
 bashio::log.info "MQTT Topic: ${MQTT_TOPIC}"
@@ -31,6 +44,9 @@ export MQTT_USERNAME
 export MQTT_PASSWORD
 export MQTT_TOPIC
 export UNITS
+export ADDON_VERSION="$(bashio::addon.version)"
+export ADDON_NAME="RTL433 Acurite Bridge"
+export ADDON_SUPPORT_URL="https://github.com/dcsubie/RTL433-Acurite-Bridge"
 
 export PROTOCOLS="$(IFS=,; echo "${PROTOCOLS[*]}")"
 export WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"

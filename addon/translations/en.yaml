@@ -1,0 +1,25 @@
+configuration:
+  mqtt_host:
+    name: MQTT host
+    description: Broker hostname. Leave as core-mosquitto for the official Mosquitto add-on.
+  mqtt_port:
+    name: MQTT port
+    description: Broker port (usually 1883).
+  mqtt_username:
+    name: MQTT username
+    description: Leave blank to use Supervisor MQTT credentials with the default broker host.
+  mqtt_password:
+    name: MQTT password
+    description: Broker password. Leave blank when using Supervisor auto-configuration.
+  mqtt_topic:
+    name: MQTT topic root
+    description: Root topic for sensor state payloads (default rtl_433).
+  whitelist:
+    name: Sensor whitelist
+    description: Optional rtl_433 sensor IDs to accept. Empty accepts all sensors.
+  protocols:
+    name: rtl_433 protocols
+    description: Protocol numbers passed to rtl_433 with -R. Defaults target common Acurite devices.
+  units:
+    name: Units
+    description: Use si for metric rtl_433 output (recommended).

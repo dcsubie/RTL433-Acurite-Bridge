@@ -4,43 +4,43 @@ A modern Home Assistant add-on that bridges **rtl_433** weather station data int
 
 ## Features
 
-- 📡 Supports RTL-SDR receivers
-- 🌦️ Designed for Acurite weather stations
-- 🏠 Home Assistant MQTT Discovery
-- 📶 MQTT Broker Support
-- 🔍 Device Whitelist
-- 📊 Friendly Entity Names
-- 🔄 Multi-Architecture Builds
-- 📜 Open Source (MIT)
+- Supports RTL-SDR receivers
+- Designed for Acurite weather stations
+- Home Assistant MQTT Discovery
+- Supervisor MQTT auto-configuration
+- Device whitelist
+- Diagnostic RSSI/SNR entities
+- Multi-architecture builds (`amd64`, `aarch64`, `armv7`)
+- Open Source (MIT)
 
 ## Status
 
-🚧 Early Development
+**v0.1.2** — first documented public release candidate.
 
-Current milestone:
+Milestone checklist:
 
-- [ ] Home Assistant Add-on Skeleton
-- [ ] rtl_433 Integration
-- [ ] MQTT Bridge
-- [ ] Home Assistant Discovery
-- [ ] Documentation
-- [ ] Release v0.1.0
+- [x] Home Assistant Add-on Skeleton
+- [x] rtl_433 Integration
+- [x] MQTT Bridge
+- [x] Home Assistant Discovery
+- [x] Documentation
+- [x] Release v0.1.2
 
-## Supported Architectures
+## Install
 
-- amd64
-- aarch64
-- armv7
+1. **Settings → Add-ons → Add-on store → Repositories**
+2. Add `https://github.com/dcsubie/RTL433-Acurite-Bridge`
+3. Install **RTL433 Acurite Bridge**, start it, and check the log
+
+Full configuration details are in the add-on **Documentation** tab (`addon/DOCS.md`).
 
 ## Planned Features
 
-- MQTT Discovery
-- Legacy Topic Compatibility
-- Automatic Device Registry
-- Diagnostics
-- Sensor Filtering
-- Friendly Names
-- Protocol Selection
+- MQTT device discovery migration (single device payload)
+- Legacy topic compatibility
+- Imperial unit field mapping
+- Protocol presets in the UI
+- Stronger MQTT reconnect handling
 
 ## Security
 
