@@ -15,7 +15,7 @@ A modern Home Assistant add-on that bridges **rtl_433** weather station data int
 
 ## Status
 
-**v0.1.2** — first documented public release candidate.
+**v0.1.3** — documented public release with current MQTT discovery behavior.
 
 Milestone checklist:
 
@@ -24,7 +24,7 @@ Milestone checklist:
 - [x] MQTT Bridge
 - [x] Home Assistant Discovery
 - [x] Documentation
-- [x] Release v0.1.2
+- [x] Release v0.1.3
 
 ## Install
 
