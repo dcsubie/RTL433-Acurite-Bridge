@@ -15,6 +15,14 @@ class Config:
     mqtt_topic: str = "rtl_433"
     units: str = "si"
     whitelist: tuple[str, ...] = ()
+    addon_name: str = "RTL433 Acurite Bridge"
+    addon_version: str = "0.1.2"
+    addon_support_url: str = "https://github.com/dcsubie/RTL433-Acurite-Bridge"
+
+    @property
+    def availability_topic(self) -> str:
+        """Return the shared bridge availability topic."""
+        return f"{self.mqtt_topic}/bridge/status"
 
 
 def load_config() -> Config:
@@ -31,5 +39,11 @@ def load_config() -> Config:
             sensor_id.strip()
             for sensor_id in os.getenv("WHITELIST", "").split(",")
             if sensor_id.strip()
+        ),
+        addon_name=os.getenv("ADDON_NAME", "RTL433 Acurite Bridge"),
+        addon_version=os.getenv("ADDON_VERSION", "0.1.2"),
+        addon_support_url=os.getenv(
+            "ADDON_SUPPORT_URL",
+            "https://github.com/dcsubie/RTL433-Acurite-Bridge",
         ),
     )

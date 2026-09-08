@@ -59,10 +59,11 @@ def process_message(
     # Publish Home Assistant discovery for values not previously announced.
     discovery.publish_available(reading)
 
-    # Publish sensor state
+    # Publish sensor state (retained so HA restarts keep last readings).
     mqtt.publish_sensor(
         reading.base_topic(topic_root),
         reading.to_dict(),
+        retain=True,
     )
 
 
@@ -76,14 +77,22 @@ def main() -> None:
         config.mqtt_port,
         config.mqtt_username,
         config.mqtt_password,
+        availability_topic=config.availability_topic,
     )
 
     discovery = DiscoveryPublisher(
         mqtt,
         config.mqtt_topic,
+        availability_topic=config.availability_topic,
+        origin_name=config.addon_name,
+        origin_version=config.addon_version,
+        origin_support_url=config.addon_support_url,
     )
 
-    LOGGER.info("RTL433 Acurite Bridge started")
+    LOGGER.info(
+        "RTL433 Acurite Bridge started (v%s)",
+        config.addon_version,
+    )
 
     try:
         for line in sys.stdin:
