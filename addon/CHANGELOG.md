@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4
+
+- Version bump so Home Assistant can detect a fresh update
+- Default Docker `BUILD_FROM` for current Supervisor builds
+- Enable `uart` for RTL-SDR devices
+- Drop unused legacy `map: config:rw` mount
+- Docs: how to force Supervisor onto the `main` branch if updates never appear
+
 ## 0.1.3
 
 - Version bump so Home Assistant offers an update from earlier 0.1.2 builds

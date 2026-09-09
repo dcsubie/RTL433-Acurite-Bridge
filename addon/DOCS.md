@@ -13,12 +13,21 @@ Bridges **rtl_433** weather station data into Home Assistant using MQTT Discover
 
 1. In Home Assistant, go to **Settings → Add-ons → Add-on store**.
 2. Open the three-dot menu → **Repositories**.
-3. Add:
+3. Add (pin `main` so Supervisor cannot stay on an old branch):
 
-   `https://github.com/dcsubie/RTL433-Acurite-Bridge`
+   `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`
 
 4. Refresh the add-on store and install **RTL433 Acurite Bridge**.
 5. Start the add-on and open **Log** to confirm rtl_433 and the MQTT bridge started.
+
+### Updates not appearing
+
+If the store stays on an old version such as `0.1.2`, Supervisor is usually still tracking the old `scaffold` branch.
+
+1. Remove this repository from the Add-on store.
+2. Re-add `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`.
+3. Use **Check for updates**, then install/update to the latest version.
+4. If needed, check **Settings → System → Logs → Supervisor** for `Can't read .../config.yaml` or git pull errors.
 
 ## Configuration
 

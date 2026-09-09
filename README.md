@@ -15,7 +15,7 @@ A modern Home Assistant add-on that bridges **rtl_433** weather station data int
 
 ## Status
 
-**v0.1.3** — documented public release with current MQTT discovery behavior.
+**v0.1.4** — documented public release with current MQTT discovery behavior.
 
 Milestone checklist:
 
@@ -24,15 +24,26 @@ Milestone checklist:
 - [x] MQTT Bridge
 - [x] Home Assistant Discovery
 - [x] Documentation
-- [x] Release v0.1.3
+- [x] Release v0.1.4
 
 ## Install
 
 1. **Settings → Add-ons → Add-on store → Repositories**
-2. Add `https://github.com/dcsubie/RTL433-Acurite-Bridge`
+2. Add `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`
 3. Install **RTL433 Acurite Bridge**, start it, and check the log
 
 Full configuration details are in the add-on **Documentation** tab (`addon/DOCS.md`).
+
+### If Home Assistant never shows an update
+
+Supervisor keeps whatever Git branch it first cloned. If you originally added this repo while `scaffold` was checked out, it can stay stuck on **0.1.2** forever.
+
+Fix:
+
+1. Uninstall the add-on (optional but cleanest)
+2. Add-on store → **Repositories** → remove this repository
+3. Add it again as: `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`
+4. **⋮ → Check for updates**, then install/update to **0.1.4**
 
 ## Planned Features
 
