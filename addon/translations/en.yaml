@@ -26,3 +26,23 @@ configuration:
   units:
     name: Units
     description: Keep si for the current bridge field mapping (recommended). custom is advanced and may not populate entities yet.
+  frequency:
+    name: Frequency
+    description: >-
+      rtl_433 tuner frequency (-f). Default 433.92M for US Acurite. Try
+      433.9M or 434.0M if the display works but the SDR never hears the 5n1.
+  gain:
+    name: Tuner gain
+    description: >-
+      rtl_433 gain (-g). Default 40. Try auto, 20, 30, or 49.6 if needed.
+      Leave blank to use the rtl_433 default.
+  ppm:
+    name: Frequency correction (ppm)
+    description: >-
+      Optional crystal correction (-p). Try 20, -20, 40, or -40 if nearby
+      sensors decode but the 5n1 does not.
+  classic_demod:
+    name: Classic demodulator
+    description: >-
+      Enable rtl_433 -Y classic (default on in 0.1.19). Newer rtl_433 builds
+      changed demod defaults; classic matches older receive behavior.

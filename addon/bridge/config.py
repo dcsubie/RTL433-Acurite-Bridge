@@ -16,7 +16,7 @@ class Config:
     units: str = "si"
     whitelist: tuple[str, ...] = ()
     addon_name: str = "RTL433 Acurite Bridge"
-    addon_version: str = "0.1.16"
+    addon_version: str = "0.1.19"
     addon_support_url: str = "https://github.com/dcsubie/RTL433-Acurite-Bridge"
 
     @property
@@ -28,6 +28,11 @@ class Config:
 def load_config() -> Config:
     """Load configuration from environment variables."""
 
+    whitelist_raw = os.getenv(
+        "RTL433_WHITELIST",
+        os.getenv("WHITELIST", ""),
+    )
+
     return Config(
         mqtt_host=os.getenv("MQTT_HOST", "core-mosquitto"),
         mqtt_port=int(os.getenv("MQTT_PORT", "1883")),
@@ -37,11 +42,11 @@ def load_config() -> Config:
         units=os.getenv("UNITS", "si"),
         whitelist=tuple(
             sensor_id.strip()
-            for sensor_id in os.getenv("WHITELIST", "").split(",")
+            for sensor_id in whitelist_raw.split(",")
             if sensor_id.strip()
         ),
         addon_name=os.getenv("ADDON_NAME", "RTL433 Acurite Bridge"),
-        addon_version=os.getenv("ADDON_VERSION", "0.1.16"),
+        addon_version=os.getenv("ADDON_VERSION", "0.1.19"),
         addon_support_url=os.getenv(
             "ADDON_SUPPORT_URL",
             "https://github.com/dcsubie/RTL433-Acurite-Bridge",
