@@ -82,7 +82,7 @@ class DiscoveryPublisher:
             "device": {
                 "identifiers": [sensor.sensor_id],
                 "name": sensor.device_name(),
-                "manufacturer": sensor.manufacturer(),
+                "manufacturer": "Acurite",
                 "model": sensor.model,
                 "sw_version": self.origin_version,
             },

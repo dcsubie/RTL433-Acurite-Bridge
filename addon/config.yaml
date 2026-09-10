@@ -1,7 +1,7 @@
 name: RTL433 Acurite Bridge
-version: "0.1.20"
+version: "0.1.21"
 slug: rtl433_acurite_bridge
-description: Acurite-first rtl_433 MQTT Discovery bridge for Home Assistant (other brands via protocols).
+description: Modern rtl_433 MQTT bridge for Acurite weather stations.
 url: https://github.com/dcsubie/RTL433-Acurite-Bridge
 
 arch:
@@ -29,10 +29,6 @@ options:
   whitelist: []
   protocols: [11, 40, 41, 55, 74]
   units: si
-  frequency: "433.92M"
-  gain: "40"
-  ppm: 0
-  classic_demod: true
 
 schema:
   mqtt_host: str
@@ -41,11 +37,7 @@ schema:
   mqtt_password: password?
   mqtt_topic: str
   whitelist:
-    - int?
+    - int
   protocols:
-    - int?
+    - int
   units: list(si|custom)
-  frequency: str
-  gain: str?
-  ppm: int(-1000,1000)
-  classic_demod: bool
