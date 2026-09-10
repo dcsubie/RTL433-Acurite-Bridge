@@ -1,5 +1,5 @@
 name: RTL433 Acurite Bridge
-version: "0.1.14"
+version: "0.1.16"
 slug: rtl433_acurite_bridge
 description: Acurite-first rtl_433 MQTT Discovery bridge for Home Assistant (other brands via protocols).
 url: https://github.com/dcsubie/RTL433-Acurite-Bridge
@@ -36,11 +36,8 @@ schema:
   mqtt_username: str?
   mqtt_password: password?
   mqtt_topic: str
-  # Trailing ? makes the whole list optional so HA can save an empty /
-  # omitted whitelist (accept all IDs) and an empty protocols list (all
-  # rtl_433 decoders).
   whitelist:
-    - int?
+    - int
   protocols:
-    - int?
+    - int
   units: list(si|custom)
