@@ -12,6 +12,10 @@ MQTT_USERNAME=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 MQTT_TOPIC=$(bashio::config 'mqtt_topic')
 UNITS=$(bashio::config 'units')
+FREQUENCY=$(bashio::config 'frequency')
+GAIN=$(bashio::config 'gain')
+PPM=$(bashio::config 'ppm')
+CLASSIC_DEMOD=$(bashio::config 'classic_demod')
 
 # Read list options by index. bashio::config 'key[]' is not valid and returns
 # empty, which made logs show "All"/"None" even when values were configured.
@@ -35,10 +39,54 @@ read_config_array() {
     done
 }
 
+# Expand accidental CSV blobs into individual integers.
+# rtl_433's -R flag accepts exactly one protocol number per flag.
+normalize_int_list() {
+    local -n __source_array="$1"
+    local -n __dest_array="$2"
+    local entry part
+    local -a parts=()
+    local -A seen=()
+
+    __dest_array=()
+    for entry in "${__source_array[@]}"; do
+        entry="${entry// /}"
+        if [[ -z "${entry}" || "${entry}" == "null" ]]; then
+            continue
+        fi
+
+        parts=()
+        if [[ "${entry}" == *,* ]]; then
+            IFS=',' read -r -a parts <<< "${entry}"
+        else
+            parts=("${entry}")
+        fi
+
+        for part in "${parts[@]}"; do
+            part="${part// /}"
+            if [[ "${part}" =~ ^[0-9]+$ ]]; then
+                if [[ -z "${seen[$part]+x}" ]]; then
+                    seen["${part}"]=1
+                    __dest_array+=("${part}")
+                fi
+            else
+                bashio::log.warning "Ignoring invalid protocol/whitelist entry: ${part}"
+            fi
+        done
+    done
+}
+
 PROTOCOLS=()
 WHITELIST=()
 read_config_array 'protocols' PROTOCOLS
 read_config_array 'whitelist' WHITELIST
+
+NORMALIZED_PROTOCOLS=()
+NORMALIZED_WHITELIST=()
+normalize_int_list PROTOCOLS NORMALIZED_PROTOCOLS
+normalize_int_list WHITELIST NORMALIZED_WHITELIST
+PROTOCOLS=("${NORMALIZED_PROTOCOLS[@]}")
+WHITELIST=("${NORMALIZED_WHITELIST[@]}")
 
 # Prefer Supervisor MQTT service discovery when using the default broker
 # host and no username was set in the add-on options. Explicit credentials
@@ -58,6 +106,10 @@ bashio::log.info "MQTT Host: ${MQTT_HOST}"
 bashio::log.info "MQTT Port: ${MQTT_PORT}"
 bashio::log.info "MQTT Topic: ${MQTT_TOPIC}"
 bashio::log.info "Units: ${UNITS}"
+bashio::log.info "Frequency: ${FREQUENCY:-default}"
+bashio::log.info "Gain: ${GAIN:-default}"
+bashio::log.info "PPM: ${PPM:-0}"
+bashio::log.info "Classic demod (-Y classic): ${CLASSIC_DEMOD}"
 if ((${#PROTOCOLS[@]} > 0)); then
     PROTOCOL_LABELS=()
     for protocol in "${PROTOCOLS[@]}"; do
@@ -82,7 +134,36 @@ else
     bashio::log.info "Whitelist: None (accept all decoded sensor IDs)"
 fi
 
-# Export for Python
+# Build rtl_433 arguments BEFORE any CSV export so each -R gets one number
+# (matches upstream acurite2mqtt: -R 11 -R 40 -R 41 -R 55 -R 74).
+RTL_ARGS=(-F json -M level)
+
+if [[ -n "${FREQUENCY}" && "${FREQUENCY}" != "null" ]]; then
+    RTL_ARGS+=(-f "${FREQUENCY}")
+fi
+
+if [[ -n "${PPM}" && "${PPM}" != "null" && "${PPM}" != "0" ]]; then
+    RTL_ARGS+=(-p "${PPM}")
+fi
+
+if [[ -n "${GAIN}" && "${GAIN}" != "null" ]]; then
+    RTL_ARGS+=(-g "${GAIN}")
+fi
+
+if [[ "${CLASSIC_DEMOD}" == "true" ]]; then
+    # Newer rtl_433 builds changed demod defaults; classic matches older behavior.
+    RTL_ARGS+=(-Y classic)
+fi
+
+for protocol in "${PROTOCOLS[@]}"; do
+    RTL_ARGS+=(-R "${protocol}")
+done
+
+if [[ "${UNITS}" == "si" ]]; then
+    RTL_ARGS+=(-C si)
+fi
+
+# Export for Python after RTL_ARGS are built (do not clobber the protocols array).
 export MQTT_HOST
 export MQTT_PORT
 export MQTT_USERNAME
@@ -92,23 +173,23 @@ export UNITS
 export ADDON_VERSION="$(bashio::addon.version)"
 export ADDON_NAME="RTL433 Acurite Bridge"
 export ADDON_SUPPORT_URL="https://github.com/dcsubie/RTL433-Acurite-Bridge"
+export RTL433_WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
+export WHITELIST="${RTL433_WHITELIST}"
 
-export PROTOCOLS="$(IFS=,; echo "${PROTOCOLS[*]}")"
-export WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
-
-# Build rtl_433 arguments
-RTL_ARGS=(-F json)
-
-for protocol in "${PROTOCOLS[@]}"; do
-    [[ -n "$protocol" ]] && RTL_ARGS+=(-R "$protocol")
-done
-
-if [[ "$UNITS" == "si" ]]; then
-    RTL_ARGS+=(-C si)
-fi
-
+bashio::log.info "Bridge whitelist export: ${RTL433_WHITELIST:-None}"
 bashio::log.info "Starting rtl_433..."
 bashio::log.info "Arguments: ${RTL_ARGS[*]}"
 
-# Pipe rtl_433 JSON directly into the Python bridge
-exec rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
+# Keep the pipeline alive if one side warns/exits oddly.
+set +o pipefail
+rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
+pipeline_status=("${PIPESTATUS[@]}")
+rtl_code=${pipeline_status[0]:-0}
+python_code=${pipeline_status[1]:-0}
+if [[ ${python_code} -ne 0 ]]; then
+    bashio::exit.nok "Python bridge exited with code ${python_code}"
+fi
+if [[ ${rtl_code} -ne 0 ]]; then
+    bashio::exit.nok "rtl_433 exited with code ${rtl_code}"
+fi
+bashio::exit.ok

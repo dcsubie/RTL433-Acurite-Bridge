@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.19
+
+- Keep the morning 0.1.7/0.1.16 bridge runtime
+- Build upstream-style `-R` flags (`-R 11 -R 40 ...`, no CSV blob warning)
+- Add RF options: `frequency`, `gain` (default `40`), `ppm`
+- Add `classic_demod` (default `true`) for rtl_433 `-Y classic`
+- Allow empty whitelist/protocols in the HA config UI again
+
 ## 0.1.16
 
 - Restore the morning **0.1.7** add-on runtime (bridge, discovery, `run.sh`)
