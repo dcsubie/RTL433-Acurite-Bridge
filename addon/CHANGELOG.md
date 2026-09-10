@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.21
+
+- Restore the **0.1.6** add-on runtime (bashio array parsing fix era)
+- Version bump so Home Assistant can install this rollback over 0.1.20+
+
 ## 0.1.20
 
 - Log every decoded packet at INFO with id, model, rssi/snr/noise/freq

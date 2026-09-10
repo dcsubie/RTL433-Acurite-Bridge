@@ -2,12 +2,9 @@
 RTL433 MQTT Bridge main entry point.
 """
 
-from __future__ import annotations
-
 import json
 import logging
 import sys
-from typing import Any
 
 from config import load_config
 from discovery import DiscoveryPublisher
@@ -22,32 +19,36 @@ logging.basicConfig(
 LOGGER = logging.getLogger("rtl433-bridge")
 
 
-def _rf_summary(message: dict[str, Any]) -> str:
-    """Format optional RF diagnostic fields for log lines."""
+def process_message(
+    message: dict,
+    mqtt: MQTTBridge,
+    discovery: DiscoveryPublisher,
+    topic_root: str,
+    whitelist: tuple[str, ...] = (),
+) -> None:
+    """Convert an rtl_433 JSON message into a SensorReading and publish it."""
 
-    parts: list[str] = []
-    for key in ("rssi", "snr", "noise", "freq"):
-        if key in message and message[key] is not None:
-            parts.append(f"{key}={message[key]}")
-    return f" ({', '.join(parts)})" if parts else ""
-
-
-def reading_from_message(message: dict[str, Any]) -> SensorReading:
-    """Normalize an rtl_433 JSON object into a SensorReading."""
+    if "id" not in message:
+        LOGGER.warning("Skipping rtl_433 message without a sensor id: %s", message)
+        return
 
     sensor_id = str(message["id"])
-    model = str(message.get("model", "Unknown"))
 
-    return SensorReading(
+    if whitelist and sensor_id not in whitelist:
+        LOGGER.debug("Skipping sensor %s because it is not whitelisted", sensor_id)
+        return
+    model = message.get("model", "Unknown")
+
+    reading = SensorReading(
         sensor_id=sensor_id,
         model=model,
-        temperature=message.get("temperature_C", message.get("temperature_F")),
+        temperature=message.get("temperature_C"),
         humidity=message.get("humidity"),
-        wind_speed=message.get("wind_avg_km_h", message.get("wind_avg_m_s")),
-        wind_gust=message.get("wind_max_km_h", message.get("wind_max_m_s")),
+        wind_speed=message.get("wind_avg_km_h"),
+        wind_gust=message.get("wind_max_km_h"),
         wind_direction=message.get("wind_dir_deg"),
-        rain_total=message.get("rain_mm", message.get("rain_in")),
-        pressure=message.get("pressure_hPa", message.get("pressure_PSI")),
+        rain_total=message.get("rain_mm"),
+        pressure=message.get("pressure_hPa"),
         battery_ok=message.get("battery_ok"),
         rssi=message.get("rssi"),
         snr=message.get("snr"),
@@ -55,73 +56,14 @@ def reading_from_message(message: dict[str, Any]) -> SensorReading:
         channel=str(message["channel"]) if "channel" in message else None,
     )
 
-
-def process_message(
-    message: dict,
-    mqtt: MQTTBridge,
-    discovery: DiscoveryPublisher,
-    topic_root: str,
-    whitelist: tuple[str, ...] = (),
-    seen_ids: set[str] | None = None,
-) -> None:
-    """Convert an rtl_433 JSON message into a SensorReading and publish it."""
-
-    if "id" not in message:
-        LOGGER.warning(
-            "Skipping rtl_433 message without a sensor id: model=%s keys=%s",
-            message.get("model", "Unknown"),
-            ",".join(sorted(message.keys())),
-        )
-        return
-
-    sensor_id = str(message["id"])
-    model = str(message.get("model", "Unknown"))
-
-    # Always log every decoded packet so missing 5n1 traffic is obvious.
-    LOGGER.info(
-        "Packet id=%s model=%s%s keys=%s",
-        sensor_id,
-        model,
-        _rf_summary(message),
-        ",".join(sorted(message.keys())),
-    )
-
-    if seen_ids is not None and sensor_id not in seen_ids:
-        seen_ids.add(sensor_id)
-        LOGGER.info(
-            "Heard sensor id=%s model=%s (first time this run)",
-            sensor_id,
-            model,
-        )
-
-    if whitelist and sensor_id not in whitelist:
-        LOGGER.info(
-            "Skipping sensor %s (not in whitelist: %s)",
-            sensor_id,
-            ",".join(whitelist),
-        )
-        return
-
-    reading = reading_from_message(message)
-
+    # Publish Home Assistant discovery for values not previously announced.
     discovery.publish_available(reading)
 
+    # Publish sensor state (retained so HA restarts keep last readings).
     mqtt.publish_sensor(
         reading.base_topic(topic_root),
         reading.to_dict(),
         retain=True,
-    )
-    LOGGER.info(
-        "Published %s (%s): %s",
-        sensor_id,
-        model,
-        ",".join(
-            sorted(
-                key
-                for key in reading.to_dict().keys()
-                if key not in {"sensor_id", "model", "channel"}
-            )
-        ),
     )
 
 
@@ -151,12 +93,6 @@ def main() -> None:
         "RTL433 Acurite Bridge started (v%s)",
         config.addon_version,
     )
-    if config.whitelist:
-        LOGGER.info("Active whitelist: %s", ",".join(config.whitelist))
-    else:
-        LOGGER.info("Active whitelist: None (accepting all sensor IDs)")
-
-    seen_ids: set[str] = set()
 
     try:
         for line in sys.stdin:
@@ -178,7 +114,6 @@ def main() -> None:
                     discovery,
                     config.mqtt_topic,
                     config.whitelist,
-                    seen_ids=seen_ids,
                 )
             except Exception:
                 LOGGER.exception("Error processing rtl_433 message")
