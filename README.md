@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.8** — MQTT device discovery with safe migration from per-entity configs.
+**v0.1.9** — fixed rtl_433 `-R` protocol flags and MQTT device discovery.
 
 ## Planned Features
 

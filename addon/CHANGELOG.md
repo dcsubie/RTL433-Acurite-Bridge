@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9
+
+- Fix rtl_433 protocol flags so each `-R` gets one protocol number
+  (`-R 11 -R 40 ...` instead of `-R 11,40,41,55,74`)
+- Stop exporting a CSV string over the PROTOCOLS bash array before building args
+
 ## 0.1.8
 
 - Switch Home Assistant MQTT discovery to device discovery (one device payload
