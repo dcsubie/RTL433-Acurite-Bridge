@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6
+
+- Fix bashio parsing of `protocols` and `whitelist` arrays so configured values
+  are logged and actually applied to rtl_433 / the MQTT bridge
+
 ## 0.1.5
 
 - Retry MQTT connect with exponential backoff while the broker starts

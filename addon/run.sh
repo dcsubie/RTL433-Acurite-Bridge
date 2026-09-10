@@ -13,8 +13,32 @@ MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 MQTT_TOPIC=$(bashio::config 'mqtt_topic')
 UNITS=$(bashio::config 'units')
 
-mapfile -t PROTOCOLS < <(bashio::config 'protocols[]')
-mapfile -t WHITELIST < <(bashio::config 'whitelist[]')
+# Read list options by index. bashio::config 'key[]' is not valid and returns
+# empty, which made logs show "All"/"None" even when values were configured.
+read_config_array() {
+    local key="$1"
+    local -n __out_array="$2"
+    local length value
+    local i=0
+
+    __out_array=()
+    length="$(bashio::config "${key} | length")"
+    if ! [[ "${length}" =~ ^[0-9]+$ ]]; then
+        length=0
+    fi
+
+    for ((i = 0; i < length; i++)); do
+        value="$(bashio::config "${key}[${i}]")"
+        if [[ -n "${value}" && "${value}" != "null" ]]; then
+            __out_array+=("${value}")
+        fi
+    done
+}
+
+PROTOCOLS=()
+WHITELIST=()
+read_config_array 'protocols' PROTOCOLS
+read_config_array 'whitelist' WHITELIST
 
 # Prefer Supervisor MQTT service discovery when using the default broker
 # host and no username was set in the add-on options. Explicit credentials
@@ -34,8 +58,16 @@ bashio::log.info "MQTT Host: ${MQTT_HOST}"
 bashio::log.info "MQTT Port: ${MQTT_PORT}"
 bashio::log.info "MQTT Topic: ${MQTT_TOPIC}"
 bashio::log.info "Units: ${UNITS}"
-bashio::log.info "Protocols: ${PROTOCOLS[*]:-All}"
-bashio::log.info "Whitelist: ${WHITELIST[*]:-None}"
+if ((${#PROTOCOLS[@]} > 0)); then
+    bashio::log.info "Protocols: ${PROTOCOLS[*]}"
+else
+    bashio::log.info "Protocols: All"
+fi
+if ((${#WHITELIST[@]} > 0)); then
+    bashio::log.info "Whitelist: ${WHITELIST[*]}"
+else
+    bashio::log.info "Whitelist: None"
+fi
 
 # Export for Python
 export MQTT_HOST
