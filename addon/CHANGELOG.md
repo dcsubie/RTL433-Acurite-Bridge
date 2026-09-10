@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5
+
+- Retry MQTT connect with exponential backoff while the broker starts
+- Enable paho automatic reconnect after unexpected disconnects
+- Republish availability on reconnect
+- Remove the stale `scaffold` branch so Supervisor cannot stay stuck on 0.1.2
+
 ## 0.1.4
 
 - Version bump so Home Assistant can detect a fresh update
