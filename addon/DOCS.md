@@ -131,9 +131,10 @@ Depending on what the station reports:
 
 - **No devices:** confirm the RTL-SDR is attached, check the add-on Log for rtl_433 startup, and verify your protocol list includes your sensor family
 - **Too many devices:** set `whitelist` to only your sensor IDs
-- **Station stopped updating after an add-on update:** check the Log for `Active whitelist`, `Heard sensor id=...`, `Published ...`, and `Skipping sensor ...`. If your station ID never appears in `Heard`, it is an RF/decode issue (dongle, antenna, `protocols`). If it is `Skipping`, fix `whitelist`. From 0.1.11 onward, partial 5n1 packets are merged so wind-only messages do not clear temperature/humidity
+- **Station stopped updating after an add-on update:** check the Log for `Active whitelist`, `Heard sensor id=...`, `Published ...`, and `Skipping sensor ...`. If your station ID never appears in `Heard`, rtl_433 is not decoding it (dongle/antenna/range/batteries, or compare how often *other* sensors appear). If it is `Skipping`, fix `whitelist`. From 0.1.11 onward, partial 5n1 packets are merged; from 0.1.13 onward startup no longer blocks the rtl_433 pipe while seeding MQTT
 - **Cannot clear whitelist (Missing option 'whitelist'):** set `whitelist: []` in YAML, or update to 0.1.12+ which allows an empty/omitted list. Do not remove the `whitelist` key on older versions
 - **Finding a missing 5n1 ID:** temporarily use `whitelist: []`, restart, and watch the Log for `Heard sensor id=...`. A battery change can give the station a new ID
+- **Everything weaker than before:** try `protocols: []` (all decoders), reseat the USB dongle, and compare time-to-first-`Heard` against a known-good window
 - **Entities unavailable:** confirm the add-on is running and MQTT is reachable
 - **Wrong/empty sensor values with `custom` units:** switch back to `si`; the bridge currently maps SI field names
 - After Home Assistant restarts, retained state should restore the last reading until a new radio packet arrives
