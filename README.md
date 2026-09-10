@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.12** — empty whitelist/protocols save fix, 5n1 state merge, and protocol `-R` fixes.
+**v0.1.13** — avoid SDR pipe stall on startup; empty whitelist save; 5n1 merge.
 
 ## Planned Features
 
