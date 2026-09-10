@@ -62,6 +62,9 @@ That keeps the add-on Acurite-focused for day-to-day use while still being disco
 | `whitelist` | Optional rtl_433 sensor IDs to accept. Use `whitelist: []` (or clear all entries) to accept every decoded ID. Do not delete the key on older versions; from 0.1.12 omitted/empty both work. |
 | `protocols` | rtl_433 protocol numbers (`-R`). Defaults target common Acurite devices. Empty = all decoders. |
 | `units` | `si` (recommended) or `custom`. Keep `si` unless you know the bridge field mapping. |
+| `frequency` | rtl_433 tuner frequency (`-f`). Default `433.92M`. |
+| `gain` | Optional rtl_433 gain (`-g`). Blank = rtl_433 default. Try `20` / `30` / `40` / `auto` if the outdoor station is weak. |
+| `ppm` | Optional crystal correction (`-p`). Try `20`, `-20`, `40`, or `-40` if nearby sensors decode but the 5n1 does not. |
 
 ### Default protocols (Acurite-first)
 
@@ -131,10 +134,11 @@ Depending on what the station reports:
 
 - **No devices:** confirm the RTL-SDR is attached, check the add-on Log for rtl_433 startup, and verify your protocol list includes your sensor family
 - **Too many devices:** set `whitelist` to only your sensor IDs
-- **Station stopped updating after an add-on update:** check the Log for `Active whitelist`, `Heard sensor id=...`, `Published ...`, and `Skipping sensor ...`. If your station ID never appears in `Heard`, rtl_433 is not decoding it (dongle/antenna/range/batteries, or compare how often *other* sensors appear). If it is `Skipping`, fix `whitelist`. From 0.1.11 onward, partial 5n1 packets are merged; from 0.1.13 onward startup no longer blocks the rtl_433 pipe while seeding MQTT
+- **Acurite display updates but Home Assistant does not:** the outdoor station is transmitting. Check the add-on Log for `Packet id=` / `Heard`. If only a nearby sensor (like a 609TXC) appears, raise `gain`, try small `ppm` values, or nudge `frequency` (for example `433.9M` / `434.0M`). From 0.1.15 these are add-on options.
+- **Station stopped updating after an add-on update:** check the Log for `Active whitelist`, `Heard sensor id=...`, `Published ...`, and `Skipping sensor ...`. If your station ID never appears in `Heard`, rtl_433 is not decoding it. If it is `Skipping`, fix `whitelist`. From 0.1.11 onward, partial 5n1 packets are merged; from 0.1.13 onward startup no longer blocks the rtl_433 pipe while seeding MQTT
 - **Cannot clear whitelist (Missing option 'whitelist'):** set `whitelist: []` in YAML, or update to 0.1.12+ which allows an empty/omitted list. Do not remove the `whitelist` key on older versions
 - **Finding a missing 5n1 ID:** temporarily use `whitelist: []`, restart, and watch the Log for `Heard sensor id=...`. A battery change can give the station a new ID
-- **Everything weaker than before:** try `protocols: []` (all decoders), reseat the USB dongle, and compare time-to-first-`Heard` against a known-good window
+- **Everything weaker than before:** try higher `gain`, small `ppm` corrections, reseat the USB dongle, and compare time-to-first-`Heard` against a known-good window
 - **Entities unavailable:** confirm the add-on is running and MQTT is reachable
 - **Wrong/empty sensor values with `custom` units:** switch back to `si`; the bridge currently maps SI field names
 - After Home Assistant restarts, retained state should restore the last reading until a new radio packet arrives
