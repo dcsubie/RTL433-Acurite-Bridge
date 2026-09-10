@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import json
 import logging
+import queue
 import sys
+import threading
 from typing import Any
 
 from config import load_config
@@ -185,12 +187,33 @@ def main() -> None:
     last_states: dict[str, dict[str, Any]] = {}
     seen_ids: set[str] = set()
 
+    # Drain rtl_433 stdout immediately so MQTT retained seeding cannot block
+    # the pipe and overrun the SDR (weaker stations drop first).
+    line_queue: queue.Queue[str | None] = queue.Queue()
+
+    def _stdin_reader() -> None:
+        try:
+            for raw in sys.stdin:
+                line_queue.put(raw)
+        finally:
+            line_queue.put(None)
+
+    reader = threading.Thread(
+        target=_stdin_reader,
+        name="rtl433-stdin-reader",
+        daemon=True,
+    )
+    reader.start()
+
     mqtt.seed_retained_states(config.mqtt_topic, last_states)
 
     try:
-        for line in sys.stdin:
-            line = line.strip()
+        while True:
+            raw = line_queue.get()
+            if raw is None:
+                break
 
+            line = raw.strip()
             if not line:
                 continue
 

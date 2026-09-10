@@ -189,13 +189,15 @@ class MQTTBridge:
                 return
 
             sensor_id = topic[len(topic_root) + 1 :]
-            if "/" in sensor_id or sensor_id in {"", "bridge"}:
+            # State topics are rtl_433/<numeric_id>. Skip availability and
+            # other non-sensor retained keys without noisy warnings.
+            if "/" in sensor_id or not sensor_id.isdigit():
                 return
 
             try:
                 data = json.loads(msg.payload.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError):
-                LOGGER.warning("Ignoring invalid retained payload on %s", topic)
+                LOGGER.debug("Ignoring non-JSON retained payload on %s", topic)
                 return
 
             if not isinstance(data, dict):

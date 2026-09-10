@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.13
+
+- Drain rtl_433 stdout while seeding retained MQTT state so startup cannot
+  block the SDR pipe (weaker stations were the first to disappear)
+- Ignore non-numeric retained topics like `rtl_433/status` without warnings
+
 ## 0.1.12
 
 - Allow clearing/omitting `whitelist` and `protocols` in the HA config UI
