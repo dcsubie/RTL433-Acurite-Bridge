@@ -15,7 +15,7 @@ A modern Home Assistant add-on that bridges **rtl_433** weather station data int
 
 ## Status
 
-**v0.1.5** — MQTT reconnect/backoff and `main`-only repository tracking.
+**v0.1.6** — MQTT reconnect/backoff and corrected protocols/whitelist parsing.
 
 Milestone checklist:
 
@@ -24,7 +24,7 @@ Milestone checklist:
 - [x] MQTT Bridge
 - [x] Home Assistant Discovery
 - [x] Documentation
-- [x] Release v0.1.5
+- [x] Release v0.1.6
 
 ## Install
 
@@ -41,7 +41,7 @@ Prefer the `#main` repository URL above. If an old clone is stuck:
 1. Uninstall the add-on (optional but cleanest)
 2. Add-on store → **Repositories** → remove this repository
 3. Add it again as: `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`
-4. **⋮ → Check for updates**, then install/update to **0.1.5**
+4. **⋮ → Check for updates**, then install/update to **0.1.6**
 
 ## Planned Features
 
