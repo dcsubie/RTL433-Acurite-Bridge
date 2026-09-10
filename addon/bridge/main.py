@@ -82,13 +82,20 @@ def process_message(
     sensor_id = str(message["id"])
     model = str(message.get("model", "Unknown"))
 
+    # Log every packet (not only the first per id) so missing 5n1 traffic is obvious.
+    LOGGER.info(
+        "Packet id=%s model=%s keys=%s",
+        sensor_id,
+        model,
+        ",".join(sorted(message.keys())),
+    )
+
     if seen_ids is not None and sensor_id not in seen_ids:
         seen_ids.add(sensor_id)
         LOGGER.info(
-            "Heard sensor id=%s model=%s keys=%s",
+            "Heard sensor id=%s model=%s (first time this run)",
             sensor_id,
             model,
-            ",".join(sorted(message.keys())),
         )
 
     if whitelist and sensor_id not in whitelist:
