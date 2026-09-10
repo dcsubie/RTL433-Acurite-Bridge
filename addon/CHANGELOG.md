@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.8
+
+- Switch Home Assistant MQTT discovery to device discovery (one device payload
+  per station)
+- Migrate existing single-entity discovery topics safely while keeping the same
+  entity `unique_id`s
+- Update docs for the new discovery topic layout
+
 ## 0.1.7
 
 - Position the add-on as Acurite-first but usable by others

@@ -43,13 +43,13 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.7** — public/Acurite-first docs and clearer protocol logging.
+**v0.1.8** — MQTT device discovery with safe migration from per-entity configs.
 
 ## Planned Features
 
-- MQTT device discovery migration (single device payload)
 - Imperial unit field mapping
 - Protocol presets in the UI
+- Stale-sensor expiry / unavailable after quiet period
 
 ## Security
 

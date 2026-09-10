@@ -111,7 +111,11 @@ The bridge retries MQTT connect with backoff while the broker starts, and reconn
 | --- | --- |
 | `rtl_433/<sensor_id>` | Retained JSON state for one sensor |
 | `rtl_433/bridge/status` | Bridge availability (`online` / `offline`) |
-| `homeassistant/.../<sensor_id>/<field>/config` | MQTT Discovery configs |
+| `homeassistant/device/<sensor_id>/config` | MQTT device discovery (all entities for one station) |
+
+On upgrade from older versions, the add-on migrates away from the previous
+per-entity discovery topics (`homeassistant/sensor/.../config`) while keeping
+the same entity `unique_id`s so existing HA entities should not duplicate.
 
 ### Discovered entities
 
