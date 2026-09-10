@@ -59,14 +59,27 @@ bashio::log.info "MQTT Port: ${MQTT_PORT}"
 bashio::log.info "MQTT Topic: ${MQTT_TOPIC}"
 bashio::log.info "Units: ${UNITS}"
 if ((${#PROTOCOLS[@]} > 0)); then
-    bashio::log.info "Protocols: ${PROTOCOLS[*]}"
+    PROTOCOL_LABELS=()
+    for protocol in "${PROTOCOLS[@]}"; do
+        case "${protocol}" in
+            10) PROTOCOL_LABELS+=("10=Acurite 896 rain") ;;
+            11) PROTOCOL_LABELS+=("11=Acurite 609TXC") ;;
+            40) PROTOCOL_LABELS+=("40=Acurite 5n1/3n1/Atlas/592TXR") ;;
+            41) PROTOCOL_LABELS+=("41=Acurite 986 fridge") ;;
+            55) PROTOCOL_LABELS+=("55=Acurite 606TX") ;;
+            74) PROTOCOL_LABELS+=("74=Acurite 00275/00276") ;;
+            163) PROTOCOL_LABELS+=("163=Acurite 590TX") ;;
+            *) PROTOCOL_LABELS+=("${protocol}") ;;
+        esac
+    done
+    bashio::log.info "Protocols: ${PROTOCOL_LABELS[*]}"
 else
-    bashio::log.info "Protocols: All"
+    bashio::log.info "Protocols: All (every rtl_433 decoder)"
 fi
 if ((${#WHITELIST[@]} > 0)); then
     bashio::log.info "Whitelist: ${WHITELIST[*]}"
 else
-    bashio::log.info "Whitelist: None"
+    bashio::log.info "Whitelist: None (accept all decoded sensor IDs)"
 fi
 
 # Export for Python

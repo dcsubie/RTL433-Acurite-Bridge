@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7
+
+- Position the add-on as Acurite-first but usable by others
+- Document default protocol meanings and a recommended first-run whitelist flow
+- Log human-readable protocol labels at startup
+- Label non-Acurite devices as `rtl_433` instead of hardcoding Acurite
+
 ## 0.1.6
 
 - Fix bashio parsing of `protocols` and `whitelist` arrays so configured values
