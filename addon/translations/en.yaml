@@ -16,10 +16,13 @@ configuration:
     description: Root topic for sensor state payloads (default rtl_433).
   whitelist:
     name: Sensor whitelist
-    description: Optional rtl_433 sensor IDs to accept. Empty accepts all sensors.
+    description: Optional rtl_433 sensor IDs to keep. Empty accepts all decoded IDs; set this after first run to ignore neighbors.
   protocols:
     name: rtl_433 protocols
-    description: Protocol numbers passed to rtl_433 with -R. Defaults target common Acurite devices.
+    description: >-
+      Protocol numbers passed to rtl_433 with -R. Defaults are Acurite-first
+      (11=609TXC, 40=5n1/3n1/Atlas/592TXR, 41=986, 55=606TX, 74=00275/00276).
+      Empty enables every rtl_433 decoder.
   units:
     name: Units
-    description: Use si for metric rtl_433 output (recommended).
+    description: Keep si for the current bridge field mapping (recommended). custom is advanced and may not populate entities yet.

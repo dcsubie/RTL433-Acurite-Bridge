@@ -32,6 +32,16 @@ class SensorReading:
         """Return a friendly Home Assistant device name."""
         return f"{self.model} {self.sensor_id}"
 
+    def manufacturer(self) -> str:
+        """Return a manufacturer label based on the rtl_433 model string."""
+        model = self.model.lower()
+        if "acurite" in model:
+            return "Acurite"
+        if model in {"", "unknown"}:
+            return "rtl_433"
+        # Keep Acurite-first defaults, but don't mislabel other brands.
+        return "rtl_433"
+
     def base_topic(self, root_topic: str) -> str:
         """Return the MQTT state topic."""
         return f"{root_topic}/{self.sensor_id}"
