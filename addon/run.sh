@@ -139,8 +139,8 @@ if [[ "$UNITS" == "si" ]]; then
     RTL_ARGS+=(-C si)
 fi
 
-# Export for Python. Keep WHITELIST as CSV for the Python bridge only after
-# shell consumers of the array are finished.
+# Export for Python. Use RTL433_* names to avoid colliding with any
+# container/environment variables, and never clobber the bash arrays used above.
 export MQTT_HOST
 export MQTT_PORT
 export MQTT_USERNAME
@@ -150,10 +150,12 @@ export UNITS
 export ADDON_VERSION="$(bashio::addon.version)"
 export ADDON_NAME="RTL433 Acurite Bridge"
 export ADDON_SUPPORT_URL="https://github.com/dcsubie/RTL433-Acurite-Bridge"
-export WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
+export RTL433_WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
 
+bashio::log.info "Bridge whitelist export: ${RTL433_WHITELIST:-None}"
 bashio::log.info "Starting rtl_433..."
 bashio::log.info "Arguments: ${RTL_ARGS[*]}"
 
-# Pipe rtl_433 JSON directly into the Python bridge
-exec rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
+# Do not use `exec` on the left side of a pipeline; keep env handoff simple and
+# let the shell wait on the rtl_433 -> python bridge pipeline.
+rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
