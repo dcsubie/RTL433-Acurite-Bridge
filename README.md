@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.19** — morning bridge + upstream `-R` flags, gain 40, `-Y classic`.
+**v0.1.20** — per-packet id/model/rssi logging on the 0.1.19 RF runtime.
 
 ## Planned Features
 
