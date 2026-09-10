@@ -22,7 +22,9 @@ Bridges **rtl_433** weather station data into Home Assistant using MQTT Discover
 
 ### Updates not appearing
 
-If the store stays on an old version such as `0.1.2`, Supervisor is usually still tracking the old `scaffold` branch.
+Use the `#main` repository URL above. The old `scaffold` branch has been removed.
+
+If an older Supervisor clone is still stuck:
 
 1. Remove this repository from the Add-on store.
 2. Re-add `https://github.com/dcsubie/RTL433-Acurite-Bridge#main`.
@@ -49,6 +51,8 @@ If `mqtt_host` is left at `core-mosquitto` and `mqtt_username` is blank, the add
 To use an external broker, set `mqtt_host` (and credentials if required) explicitly.
 
 Never put real passwords in GitHub issues, screenshots, or this repository.
+
+The bridge retries MQTT connect with backoff while the broker starts, and automatically reconnects if the connection drops later.
 
 ## How it works
 
