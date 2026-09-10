@@ -1,8 +1,7 @@
 import json
 import logging
-import threading
 import time
-from typing import Any, Callable
+from typing import Any
 
 import paho.mqtt.client as mqtt
 
@@ -157,82 +156,6 @@ class MQTTBridge:
                 self.availability_topic,
                 result.rc,
             )
-
-    def seed_retained_states(
-        self,
-        topic_root: str,
-        last_states: dict[str, dict[str, Any]],
-        timeout: float = 2.0,
-    ) -> int:
-        """Load retained sensor JSON into last_states before processing packets.
-
-        Acurite 5n1-style stations send partial packets. Without seeding, the
-        first post-restart publish would overwrite a full retained payload with
-        a partial one and wipe temperature/humidity in Home Assistant.
-        """
-
-        pattern = f"{topic_root}/+"
-        loaded = 0
-        lock = threading.Lock()
-
-        def on_message(
-            client: mqtt.Client,
-            userdata: Any,
-            msg: mqtt.MQTTMessage,
-        ) -> None:
-            nonlocal loaded
-            if not msg.payload:
-                return
-
-            topic = msg.topic
-            if not topic.startswith(f"{topic_root}/"):
-                return
-
-            sensor_id = topic[len(topic_root) + 1 :]
-            # State topics are rtl_433/<numeric_id>. Skip availability and
-            # other non-sensor retained keys without noisy warnings.
-            if "/" in sensor_id or not sensor_id.isdigit():
-                return
-
-            try:
-                data = json.loads(msg.payload.decode("utf-8"))
-            except (UnicodeDecodeError, json.JSONDecodeError):
-                LOGGER.debug("Ignoring non-JSON retained payload on %s", topic)
-                return
-
-            if not isinstance(data, dict):
-                return
-
-            with lock:
-                last_states[sensor_id] = data
-                loaded += 1
-
-        previous_handler: Callable[..., Any] | None = self.client.on_message
-        self.client.on_message = on_message
-        subscribe_result = self.client.subscribe(pattern, qos=1)
-        result = (
-            subscribe_result[0]
-            if isinstance(subscribe_result, tuple)
-            else subscribe_result
-        )
-        if result != mqtt.MQTT_ERR_SUCCESS:
-            LOGGER.warning("Failed to subscribe for retained seed (%s)", result)
-            self.client.on_message = previous_handler
-            return 0
-
-        # Retained messages are delivered immediately on subscribe; wait briefly
-        # for the broker to flush them before unsubscribing.
-        time.sleep(timeout)
-
-        self.client.unsubscribe(pattern)
-        self.client.on_message = previous_handler
-
-        LOGGER.info(
-            "Seeded %s retained sensor state(s) from MQTT topic %s",
-            loaded,
-            pattern,
-        )
-        return loaded
 
     def publish_sensor(
         self,

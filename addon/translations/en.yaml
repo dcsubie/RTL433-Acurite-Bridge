@@ -16,9 +16,7 @@ configuration:
     description: Root topic for sensor state payloads (default rtl_433).
   whitelist:
     name: Sensor whitelist
-    description: >-
-      Optional rtl_433 sensor IDs to keep. Leave empty (or whitelist: []) to
-      accept all decoded IDs; set IDs after first run to ignore neighbors.
+    description: Optional rtl_433 sensor IDs to keep. Empty accepts all decoded IDs; set this after first run to ignore neighbors.
   protocols:
     name: rtl_433 protocols
     description: >-

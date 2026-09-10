@@ -35,54 +35,10 @@ read_config_array() {
     done
 }
 
-# Expand any accidental CSV blobs into individual integers.
-# rtl_433's -R flag accepts exactly one protocol number per flag.
-normalize_int_list() {
-    local -n __source_array="$1"
-    local -n __dest_array="$2"
-    local entry part
-    local -a parts=()
-    local -A seen=()
-
-    __dest_array=()
-    for entry in "${__source_array[@]}"; do
-        entry="${entry// /}"
-        if [[ -z "${entry}" || "${entry}" == "null" ]]; then
-            continue
-        fi
-
-        parts=()
-        if [[ "${entry}" == *,* ]]; then
-            IFS=',' read -r -a parts <<< "${entry}"
-        else
-            parts=("${entry}")
-        fi
-
-        for part in "${parts[@]}"; do
-            part="${part// /}"
-            if [[ "${part}" =~ ^[0-9]+$ ]]; then
-                if [[ -z "${seen[$part]+x}" ]]; then
-                    seen["${part}"]=1
-                    __dest_array+=("${part}")
-                fi
-            else
-                bashio::log.warning "Ignoring invalid protocol/whitelist entry: ${part}"
-            fi
-        done
-    done
-}
-
 PROTOCOLS=()
 WHITELIST=()
 read_config_array 'protocols' PROTOCOLS
 read_config_array 'whitelist' WHITELIST
-
-NORMALIZED_PROTOCOLS=()
-NORMALIZED_WHITELIST=()
-normalize_int_list PROTOCOLS NORMALIZED_PROTOCOLS
-normalize_int_list WHITELIST NORMALIZED_WHITELIST
-PROTOCOLS=("${NORMALIZED_PROTOCOLS[@]}")
-WHITELIST=("${NORMALIZED_WHITELIST[@]}")
 
 # Prefer Supervisor MQTT service discovery when using the default broker
 # host and no username was set in the add-on options. Explicit credentials
@@ -126,26 +82,7 @@ else
     bashio::log.info "Whitelist: None (accept all decoded sensor IDs)"
 fi
 
-# Build rtl_433 arguments.
-# 0.1.14 diagnostic: do not pass -R at all so EVERY decoder is enabled.
-# This A/B-tests whether the protocols list / -R flags are why the 5n1
-# disappeared. Morning's "-R 11,40,... -R 40 ..." still only registered
-# 11+40+41+55+74 (rtl_433 prints a warning but still registers protocol 11).
-RTL_ARGS=(-F json -M level)
-
-if ((${#PROTOCOLS[@]} > 0)); then
-    bashio::log.warning "0.1.14 diagnostic: ignoring configured protocols (${PROTOCOLS[*]}) and enabling ALL rtl_433 decoders"
-    bashio::log.warning "Set protocols back after this test, or upgrade past 0.1.14 when normal -R filtering returns"
-else
-    bashio::log.info "Protocols list empty; enabling ALL rtl_433 decoders"
-fi
-
-if [[ "$UNITS" == "si" ]]; then
-    RTL_ARGS+=(-C si)
-fi
-
-# Export for Python. Use RTL433_* names to avoid colliding with any
-# container/environment variables, and never clobber the bash arrays used above.
+# Export for Python
 export MQTT_HOST
 export MQTT_PORT
 export MQTT_USERNAME
@@ -155,23 +92,23 @@ export UNITS
 export ADDON_VERSION="$(bashio::addon.version)"
 export ADDON_NAME="RTL433 Acurite Bridge"
 export ADDON_SUPPORT_URL="https://github.com/dcsubie/RTL433-Acurite-Bridge"
-export RTL433_WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
 
-bashio::log.info "Bridge whitelist export: ${RTL433_WHITELIST:-None}"
+export PROTOCOLS="$(IFS=,; echo "${PROTOCOLS[*]}")"
+export WHITELIST="$(IFS=,; echo "${WHITELIST[*]}")"
+
+# Build rtl_433 arguments
+RTL_ARGS=(-F json)
+
+for protocol in "${PROTOCOLS[@]}"; do
+    [[ -n "$protocol" ]] && RTL_ARGS+=(-R "$protocol")
+done
+
+if [[ "$UNITS" == "si" ]]; then
+    RTL_ARGS+=(-C si)
+fi
+
 bashio::log.info "Starting rtl_433..."
 bashio::log.info "Arguments: ${RTL_ARGS[*]}"
 
-# Keep the pipeline running even if one side warns/exits oddly.
-# pipefail would tear down the whole add-on on rtl_433 non-zero exits.
-set +o pipefail
-rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
-pipeline_status=("${PIPESTATUS[@]}")
-rtl_code=${pipeline_status[0]:-0}
-python_code=${pipeline_status[1]:-0}
-if [[ ${python_code} -ne 0 ]]; then
-    bashio::exit.nok "Python bridge exited with code ${python_code}"
-fi
-if [[ ${rtl_code} -ne 0 ]]; then
-    bashio::exit.nok "rtl_433 exited with code ${rtl_code}"
-fi
-bashio::exit.ok
+# Pipe rtl_433 JSON directly into the Python bridge
+exec rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py

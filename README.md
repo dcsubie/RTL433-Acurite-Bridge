@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.14** — diagnostic: all rtl_433 decoders + per-packet logs (find missing 5n1).
+**v0.1.16** — rollback to morning 0.1.7 runtime (when 5n1/784 last worked).
 
 ## Planned Features
 
