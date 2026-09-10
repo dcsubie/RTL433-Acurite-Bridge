@@ -131,6 +131,7 @@ Depending on what the station reports:
 
 - **No devices:** confirm the RTL-SDR is attached, check the add-on Log for rtl_433 startup, and verify your protocol list includes your sensor family
 - **Too many devices:** set `whitelist` to only your sensor IDs
+- **Station stopped updating after an add-on update:** check the Log for `Active whitelist`, `Heard sensor id=...`, `Published ...`, and `Skipping sensor ...`. If your station ID never appears in `Heard`, it is an RF/decode issue (dongle, antenna, `protocols`). If it is `Skipping`, fix `whitelist`. From 0.1.11 onward, partial 5n1 packets are merged so wind-only messages do not clear temperature/humidity
 - **Entities unavailable:** confirm the add-on is running and MQTT is reachable
 - **Wrong/empty sensor values with `custom` units:** switch back to `si`; the bridge currently maps SI field names
 - After Home Assistant restarts, retained state should restore the last reading until a new radio packet arrives
