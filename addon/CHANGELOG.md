@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.14
+
+- Diagnostic build: ignore the `protocols` list and run rtl_433 with all
+  decoders enabled (no `-R` filters), plus `-M level`
+- Log every decoded packet id/model (not only the first per id)
+- Note: morning's `-R 11,40,41,55,74 -R 40 ...` still registered the same
+  protocol set as `-R 11 -R 40 ...` (rtl_433 warns on the CSV form but still
+  enables protocol 11)
+
 ## 0.1.13
 
 - Drain rtl_433 stdout while seeding retained MQTT state so startup cannot

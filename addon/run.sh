@@ -126,14 +126,19 @@ else
     bashio::log.info "Whitelist: None (accept all decoded sensor IDs)"
 fi
 
-# Build rtl_433 arguments from the bash array BEFORE any CSV export.
-# Previously we overwrote PROTOCOLS with a comma string and then passed
-# -R 11,40,41,55,74 which rtl_433 rejects.
-RTL_ARGS=(-F json)
+# Build rtl_433 arguments.
+# 0.1.14 diagnostic: do not pass -R at all so EVERY decoder is enabled.
+# This A/B-tests whether the protocols list / -R flags are why the 5n1
+# disappeared. Morning's "-R 11,40,... -R 40 ..." still only registered
+# 11+40+41+55+74 (rtl_433 prints a warning but still registers protocol 11).
+RTL_ARGS=(-F json -M level)
 
-for protocol in "${PROTOCOLS[@]}"; do
-    RTL_ARGS+=(-R "${protocol}")
-done
+if ((${#PROTOCOLS[@]} > 0)); then
+    bashio::log.warning "0.1.14 diagnostic: ignoring configured protocols (${PROTOCOLS[*]}) and enabling ALL rtl_433 decoders"
+    bashio::log.warning "Set protocols back after this test, or upgrade past 0.1.14 when normal -R filtering returns"
+else
+    bashio::log.info "Protocols list empty; enabling ALL rtl_433 decoders"
+fi
 
 if [[ "$UNITS" == "si" ]]; then
     RTL_ARGS+=(-C si)

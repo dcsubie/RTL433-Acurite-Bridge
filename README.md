@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.13** — avoid SDR pipe stall on startup; empty whitelist save; 5n1 merge.
+**v0.1.14** — diagnostic: all rtl_433 decoders + per-packet logs (find missing 5n1).
 
 ## Planned Features
 
