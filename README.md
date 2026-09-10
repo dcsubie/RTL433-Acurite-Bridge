@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.10** — whitelist enforcement fix, protocol `-R` flags, and MQTT device discovery.
+**v0.1.11** — 5n1 partial-packet state merge, whitelist enforcement, and protocol `-R` fixes.
 
 ## Planned Features
 

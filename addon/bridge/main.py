@@ -2,9 +2,12 @@
 RTL433 MQTT Bridge main entry point.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import sys
+from typing import Any
 
 from config import load_config
 from discovery import DiscoveryPublisher
@@ -19,12 +22,54 @@ logging.basicConfig(
 LOGGER = logging.getLogger("rtl433-bridge")
 
 
+def reading_from_message(message: dict[str, Any]) -> SensorReading:
+    """Normalize an rtl_433 JSON object into a SensorReading."""
+
+    sensor_id = str(message["id"])
+    model = str(message.get("model", "Unknown"))
+
+    return SensorReading(
+        sensor_id=sensor_id,
+        model=model,
+        temperature=message.get("temperature_C", message.get("temperature_F")),
+        humidity=message.get("humidity"),
+        wind_speed=message.get("wind_avg_km_h", message.get("wind_avg_m_s")),
+        wind_gust=message.get("wind_max_km_h", message.get("wind_max_m_s")),
+        wind_direction=message.get("wind_dir_deg"),
+        rain_total=message.get("rain_mm", message.get("rain_in")),
+        pressure=message.get("pressure_hPa", message.get("pressure_PSI")),
+        battery_ok=message.get("battery_ok"),
+        rssi=message.get("rssi"),
+        snr=message.get("snr"),
+        noise=message.get("noise"),
+        channel=str(message["channel"]) if "channel" in message else None,
+    )
+
+
+def merge_state(
+    previous: dict[str, Any] | None,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Merge a partial packet into the last-known sensor state.
+
+    Acurite 5n1-style stations alternate packet types (temp/humidity vs
+    wind/rain). Publishing only the latest partial fields with retain=True
+    would wipe earlier values from MQTT / Home Assistant.
+    """
+
+    merged = dict(previous or {})
+    merged.update(payload)
+    return merged
+
+
 def process_message(
     message: dict,
     mqtt: MQTTBridge,
     discovery: DiscoveryPublisher,
     topic_root: str,
     whitelist: tuple[str, ...] = (),
+    last_states: dict[str, dict[str, Any]] | None = None,
+    seen_ids: set[str] | None = None,
 ) -> None:
     """Convert an rtl_433 JSON message into a SensorReading and publish it."""
 
@@ -33,6 +78,16 @@ def process_message(
         return
 
     sensor_id = str(message["id"])
+    model = str(message.get("model", "Unknown"))
+
+    if seen_ids is not None and sensor_id not in seen_ids:
+        seen_ids.add(sensor_id)
+        LOGGER.info(
+            "Heard sensor id=%s model=%s keys=%s",
+            sensor_id,
+            model,
+            ",".join(sorted(message.keys())),
+        )
 
     if whitelist and sensor_id not in whitelist:
         LOGGER.info(
@@ -41,33 +96,58 @@ def process_message(
             ",".join(whitelist),
         )
         return
-    model = message.get("model", "Unknown")
 
-    reading = SensorReading(
+    reading = reading_from_message(message)
+    payload = reading.to_dict()
+
+    if last_states is not None:
+        previous = last_states.get(sensor_id)
+        if previous is None:
+            LOGGER.info(
+                "No retained/in-memory state for %s yet; publishing partial packet fields only until more arrive",
+                sensor_id,
+            )
+        payload = merge_state(previous, payload)
+        # Keep identity fields authoritative from the latest packet.
+        payload["sensor_id"] = sensor_id
+        payload["model"] = model
+        last_states[sensor_id] = payload
+
+    discovery_reading = SensorReading(
         sensor_id=sensor_id,
-        model=model,
-        temperature=message.get("temperature_C"),
-        humidity=message.get("humidity"),
-        wind_speed=message.get("wind_avg_km_h"),
-        wind_gust=message.get("wind_max_km_h"),
-        wind_direction=message.get("wind_dir_deg"),
-        rain_total=message.get("rain_mm"),
-        pressure=message.get("pressure_hPa"),
-        battery_ok=message.get("battery_ok"),
-        rssi=message.get("rssi"),
-        snr=message.get("snr"),
-        noise=message.get("noise"),
-        channel=str(message["channel"]) if "channel" in message else None,
+        model=str(payload.get("model", model)),
+        temperature=payload.get("temperature"),
+        humidity=payload.get("humidity"),
+        wind_speed=payload.get("wind_speed"),
+        wind_gust=payload.get("wind_gust"),
+        wind_direction=payload.get("wind_direction"),
+        rain_total=payload.get("rain_total"),
+        pressure=payload.get("pressure"),
+        battery_ok=payload.get("battery_ok"),
+        rssi=payload.get("rssi"),
+        snr=payload.get("snr"),
+        noise=payload.get("noise"),
+        channel=payload.get("channel"),
     )
 
-    # Publish Home Assistant discovery for values not previously announced.
-    discovery.publish_available(reading)
+    discovery.publish_available(discovery_reading)
 
-    # Publish sensor state (retained so HA restarts keep last readings).
     mqtt.publish_sensor(
-        reading.base_topic(topic_root),
-        reading.to_dict(),
+        discovery_reading.base_topic(topic_root),
+        payload,
         retain=True,
+    )
+    LOGGER.info(
+        "Published %s (%s): %s",
+        sensor_id,
+        model,
+        ",".join(
+            sorted(
+                key
+                for key in payload.keys()
+                if key not in {"sensor_id", "model", "channel"}
+            )
+        ),
     )
 
 
@@ -102,6 +182,11 @@ def main() -> None:
     else:
         LOGGER.info("Active whitelist: None (accepting all sensor IDs)")
 
+    last_states: dict[str, dict[str, Any]] = {}
+    seen_ids: set[str] = set()
+
+    mqtt.seed_retained_states(config.mqtt_topic, last_states)
+
     try:
         for line in sys.stdin:
             line = line.strip()
@@ -122,6 +207,8 @@ def main() -> None:
                     discovery,
                     config.mqtt_topic,
                     config.whitelist,
+                    last_states=last_states,
+                    seen_ids=seen_ids,
                 )
             except Exception:
                 LOGGER.exception("Error processing rtl_433 message")

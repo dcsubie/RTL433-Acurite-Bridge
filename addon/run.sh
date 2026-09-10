@@ -156,6 +156,17 @@ bashio::log.info "Bridge whitelist export: ${RTL433_WHITELIST:-None}"
 bashio::log.info "Starting rtl_433..."
 bashio::log.info "Arguments: ${RTL_ARGS[*]}"
 
-# Do not use `exec` on the left side of a pipeline; keep env handoff simple and
-# let the shell wait on the rtl_433 -> python bridge pipeline.
+# Keep the pipeline running even if one side warns/exits oddly.
+# pipefail would tear down the whole add-on on rtl_433 non-zero exits.
+set +o pipefail
 rtl_433 "${RTL_ARGS[@]}" | python3 /app/bridge/main.py
+pipeline_status=("${PIPESTATUS[@]}")
+rtl_code=${pipeline_status[0]:-0}
+python_code=${pipeline_status[1]:-0}
+if [[ ${python_code} -ne 0 ]]; then
+    bashio::exit.nok "Python bridge exited with code ${python_code}"
+fi
+if [[ ${rtl_code} -ne 0 ]]; then
+    bashio::exit.nok "rtl_433 exited with code ${rtl_code}"
+fi
+bashio::exit.ok

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.11
+
+- Merge partial rtl_433 packets into last-known sensor state so Acurite 5n1
+  alternating temp/wind/rain messages do not wipe retained MQTT fields
+- Seed that merge cache from retained MQTT on startup (avoids wipe on restart)
+- Log each newly heard sensor id/model and each published update
+- Relax pipeline `pipefail` so rtl_433 warnings do not kill the add-on
+
 ## 0.1.10
 
 - Fix sensor whitelist handoff to Python (`RTL433_WHITELIST`)
