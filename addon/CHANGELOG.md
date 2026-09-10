@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.10
+
+- Fix sensor whitelist handoff to Python (`RTL433_WHITELIST`)
+- Log the active whitelist and skipped non-whitelisted sensors
+- Avoid `exec` on the left side of the rtl_433 | python pipeline
+
 ## 0.1.9
 
 - Fix rtl_433 protocol flags so each `-R` gets one protocol number

@@ -35,7 +35,11 @@ def process_message(
     sensor_id = str(message["id"])
 
     if whitelist and sensor_id not in whitelist:
-        LOGGER.debug("Skipping sensor %s because it is not whitelisted", sensor_id)
+        LOGGER.info(
+            "Skipping sensor %s (not in whitelist: %s)",
+            sensor_id,
+            ",".join(whitelist),
+        )
         return
     model = message.get("model", "Unknown")
 
@@ -93,6 +97,10 @@ def main() -> None:
         "RTL433 Acurite Bridge started (v%s)",
         config.addon_version,
     )
+    if config.whitelist:
+        LOGGER.info("Active whitelist: %s", ",".join(config.whitelist))
+    else:
+        LOGGER.info("Active whitelist: None (accepting all sensor IDs)")
 
     try:
         for line in sys.stdin:
