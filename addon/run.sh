@@ -12,6 +12,9 @@ MQTT_USERNAME=$(bashio::config 'mqtt_username')
 MQTT_PASSWORD=$(bashio::config 'mqtt_password')
 MQTT_TOPIC=$(bashio::config 'mqtt_topic')
 UNITS=$(bashio::config 'units')
+FREQUENCY=$(bashio::config 'frequency')
+GAIN=$(bashio::config 'gain')
+PPM=$(bashio::config 'ppm')
 
 # Read list options by index. bashio::config 'key[]' is not valid and returns
 # empty, which made logs show "All"/"None" even when values were configured.
@@ -126,16 +129,26 @@ else
     bashio::log.info "Whitelist: None (accept all decoded sensor IDs)"
 fi
 
-# Build rtl_433 arguments.
-# 0.1.14 diagnostic: do not pass -R at all so EVERY decoder is enabled.
-# This A/B-tests whether the protocols list / -R flags are why the 5n1
-# disappeared. Morning's "-R 11,40,... -R 40 ..." still only registered
-# 11+40+41+55+74 (rtl_433 prints a warning but still registers protocol 11).
+# Build rtl_433 arguments from the bash array BEFORE any CSV export.
+# Each -R flag takes exactly one protocol number.
 RTL_ARGS=(-F json -M level)
 
+if [[ -n "${FREQUENCY}" && "${FREQUENCY}" != "null" ]]; then
+    RTL_ARGS+=(-f "${FREQUENCY}")
+fi
+
+if [[ -n "${PPM}" && "${PPM}" != "null" && "${PPM}" != "0" ]]; then
+    RTL_ARGS+=(-p "${PPM}")
+fi
+
+if [[ -n "${GAIN}" && "${GAIN}" != "null" ]]; then
+    RTL_ARGS+=(-g "${GAIN}")
+fi
+
 if ((${#PROTOCOLS[@]} > 0)); then
-    bashio::log.warning "0.1.14 diagnostic: ignoring configured protocols (${PROTOCOLS[*]}) and enabling ALL rtl_433 decoders"
-    bashio::log.warning "Set protocols back after this test, or upgrade past 0.1.14 when normal -R filtering returns"
+    for protocol in "${PROTOCOLS[@]}"; do
+        RTL_ARGS+=(-R "${protocol}")
+    done
 else
     bashio::log.info "Protocols list empty; enabling ALL rtl_433 decoders"
 fi
@@ -143,6 +156,10 @@ fi
 if [[ "$UNITS" == "si" ]]; then
     RTL_ARGS+=(-C si)
 fi
+
+bashio::log.info "Frequency: ${FREQUENCY:-default}"
+bashio::log.info "Gain: ${GAIN:-default}"
+bashio::log.info "PPM: ${PPM:-0}"
 
 # Export for Python. Use RTL433_* names to avoid colliding with any
 # container/environment variables, and never clobber the bash arrays used above.

@@ -82,11 +82,16 @@ def process_message(
     sensor_id = str(message["id"])
     model = str(message.get("model", "Unknown"))
 
-    # Log every packet (not only the first per id) so missing 5n1 traffic is obvious.
+    # Log every packet so missing 5n1 traffic is obvious; include RF level when present.
+    rf_bits = []
+    for key in ("rssi", "snr", "noise", "freq"):
+        if key in message:
+            rf_bits.append(f"{key}={message[key]}")
     LOGGER.info(
-        "Packet id=%s model=%s keys=%s",
+        "Packet id=%s model=%s%s keys=%s",
         sensor_id,
         model,
+        f" ({', '.join(rf_bits)})" if rf_bits else "",
         ",".join(sorted(message.keys())),
     )
 

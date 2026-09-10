@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.15
+
+- Restore normal `-R` protocol filtering after the 0.1.14 all-decoder diagnostic
+- Add RF tuning options: `frequency` (`-f`), `gain` (`-g`), and `ppm` (`-p`)
+- Log rssi/snr/noise/freq on each packet when rtl_433 provides them
+
 ## 0.1.14
 
 - Diagnostic build: ignore the `protocols` list and run rtl_433 with all
