@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.20
+
+- Log every decoded packet at INFO with id, model, rssi/snr/noise/freq
+- Log first-heard sensor IDs and each successful publish
+- Log whitelist skips at INFO (no longer silent)
+- Keep 0.1.19 RF defaults (gain 40, `-Y classic`, clean `-R` flags)
+
 ## 0.1.19
 
 - Keep the morning 0.1.7/0.1.16 bridge runtime

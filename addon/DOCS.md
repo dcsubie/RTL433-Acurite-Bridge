@@ -131,7 +131,7 @@ Depending on what the station reports:
 
 - **No devices:** confirm the RTL-SDR is attached, check the add-on Log for rtl_433 startup, and verify your protocol list includes your sensor family
 - **Too many devices:** set `whitelist` to only your sensor IDs
-- **Acurite display updates but HA does not:** the station is transmitting. Confirm Log Arguments look like `-R 11 -R 40 ...` (no CSV warning). Keep `classic_demod: true`, try `gain: 40` / `auto`, then small `ppm` values, then nudge `frequency`
+- **Acurite display updates but HA does not:** the station is transmitting. Confirm Log Arguments look like `-R 11 -R 40 ...` (no CSV warning). Keep `classic_demod: true`, try `gain: 40` / `auto`, then small `ppm` values, then nudge `frequency`. From 0.1.20 watch for `Packet id=` lines — if only `220` appears, rtl_433 is not decoding the 5n1
 - **Entities unavailable:** confirm the add-on is running and MQTT is reachable
 - **Wrong/empty sensor values with `custom` units:** switch back to `si`; the bridge currently maps SI field names
 - After Home Assistant restarts, retained state should restore the last reading until a new radio packet arrives
