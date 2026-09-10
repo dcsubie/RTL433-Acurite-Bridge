@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12
+
+- Allow clearing/omitting `whitelist` and `protocols` in the HA config UI
+  (schema uses optional list items so an empty list is valid)
+
 ## 0.1.11
 
 - Merge partial rtl_433 packets into last-known sensor state so Acurite 5n1
