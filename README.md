@@ -36,14 +36,14 @@ Leave MQTT username/password blank if you use Mosquitto on this HA instance.
 
 1. Start with the default protocols and an **empty whitelist**
 2. Confirm your stations appear in the add-on Log / MQTT / HA devices
-3. Copy your sensor IDs into **whitelist** so neighbor stations are ignored
+3. Add your sensor IDs to **whitelist** (click `+`, enter each ID as a number) so neighbor stations are ignored
 4. Keep `units: si` unless you know you need otherwise
 
 Full option reference, protocol table, and troubleshooting are in the add-on **Documentation** tab (`addon/DOCS.md`).
 
 ## Status
 
-**v0.1.23** — whitelist is plain text in the UI (`784` or `784,220`).
+**v0.1.24** — whitelist is a number list in the UI (same as protocols: click `+`, enter `784`).
 
 ## Planned Features
 

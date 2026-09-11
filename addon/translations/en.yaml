@@ -17,8 +17,8 @@ configuration:
   whitelist:
     name: Sensor whitelist
     description: >-
-      Optional sensor IDs to keep, as text. Examples: 784 or 784,220.
-      Leave blank to accept all decoded IDs.
+      Optional sensor IDs to keep. Same as Protocols: click + and enter each
+      ID as a number (e.g. 784). Leave empty to accept all decoded IDs.
   protocols:
     name: rtl_433 protocols
     description: Protocol numbers passed to rtl_433 with -R. Defaults target common Acurite devices.

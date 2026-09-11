@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.24
+
+- Make `whitelist` a number list like `protocols` so the Options UI works
+  without YAML quotes (`+` then `784`). Digit-only text fields were coerced
+  to int by Home Assistant and failed validation.
+- Still accept a legacy string/bare-int whitelist value at runtime if present
+
 ## 0.1.23
 
 - Change `whitelist` to a plain text option so the Home Assistant UI accepts
