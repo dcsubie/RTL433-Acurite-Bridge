@@ -40,7 +40,7 @@ If an older Supervisor clone is still stuck:
 | `mqtt_username` | Optional MQTT username. Leave blank to auto-fill from the Supervisor MQTT service when using the default host. |
 | `mqtt_password` | Optional MQTT password. |
 | `mqtt_topic` | Root MQTT topic for sensor state payloads. Default `rtl_433`. |
-| `whitelist` | Optional list of rtl_433 sensor IDs to accept. Empty = accept all. |
+| `whitelist` | Optional sensor IDs as text, e.g. `784` or `784,220`. Empty = accept all. |
 | `protocols` | rtl_433 protocol numbers to enable. Defaults target common Acurite devices. |
 | `units` | `si` (recommended) or `custom`. `si` passes `-C si` to rtl_433. |
 
