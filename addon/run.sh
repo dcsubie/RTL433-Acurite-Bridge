@@ -79,15 +79,23 @@ NORMALIZED_PROTOCOLS=()
 normalize_int_list PROTOCOLS NORMALIZED_PROTOCOLS
 PROTOCOLS=("${NORMALIZED_PROTOCOLS[@]}")
 
-# Whitelist is a plain string in the UI (e.g. "784" or "784,220").
-WHITELIST_RAW="$(bashio::config 'whitelist')"
+# Whitelist uses the same list(int) UI as protocols (click +, enter 784).
+# Also accept a legacy plain string / bare int from older configs.
 WHITELIST=()
-if [[ -n "${WHITELIST_RAW}" && "${WHITELIST_RAW}" != "null" ]]; then
-    # Allow commas and/or spaces: "784", "784,220", "784 220"
-    WHITELIST_RAW="${WHITELIST_RAW//,/ }"
-    # shellcheck disable=SC2206
-    WHITELIST_CANDIDATES=(${WHITELIST_RAW})
-    normalize_int_list WHITELIST_CANDIDATES WHITELIST
+WHITELIST_TYPE="$(bashio::config 'whitelist | type' 2>/dev/null || true)"
+if [[ "${WHITELIST_TYPE}" == "array" ]]; then
+    read_config_array 'whitelist' WHITELIST
+    NORMALIZED_WHITELIST=()
+    normalize_int_list WHITELIST NORMALIZED_WHITELIST
+    WHITELIST=("${NORMALIZED_WHITELIST[@]}")
+else
+    WHITELIST_RAW="$(bashio::config 'whitelist')"
+    if [[ -n "${WHITELIST_RAW}" && "${WHITELIST_RAW}" != "null" ]]; then
+        WHITELIST_RAW="${WHITELIST_RAW//,/ }"
+        # shellcheck disable=SC2206
+        WHITELIST_CANDIDATES=(${WHITELIST_RAW})
+        normalize_int_list WHITELIST_CANDIDATES WHITELIST
+    fi
 fi
 
 # Prefer Supervisor MQTT service discovery when using the default broker
