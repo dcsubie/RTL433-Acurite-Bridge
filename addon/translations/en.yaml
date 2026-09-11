@@ -16,7 +16,9 @@ configuration:
     description: Root topic for sensor state payloads (default rtl_433).
   whitelist:
     name: Sensor whitelist
-    description: Optional rtl_433 sensor IDs to accept. Empty accepts all sensors.
+    description: >-
+      Optional sensor IDs to keep, as text. Examples: 784 or 784,220.
+      Leave blank to accept all decoded IDs.
   protocols:
     name: rtl_433 protocols
     description: Protocol numbers passed to rtl_433 with -R. Defaults target common Acurite devices.

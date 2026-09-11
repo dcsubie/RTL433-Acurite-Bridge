@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.22** — correct rtl_433 `-R` flags (`-R 11 -R 40 ...`, not a CSV blob).
+**v0.1.23** — whitelist is plain text in the UI (`784` or `784,220`).
 
 ## Planned Features
 

@@ -73,16 +73,22 @@ normalize_int_list() {
 }
 
 PROTOCOLS=()
-WHITELIST=()
 read_config_array 'protocols' PROTOCOLS
-read_config_array 'whitelist' WHITELIST
 
 NORMALIZED_PROTOCOLS=()
-NORMALIZED_WHITELIST=()
 normalize_int_list PROTOCOLS NORMALIZED_PROTOCOLS
-normalize_int_list WHITELIST NORMALIZED_WHITELIST
 PROTOCOLS=("${NORMALIZED_PROTOCOLS[@]}")
-WHITELIST=("${NORMALIZED_WHITELIST[@]}")
+
+# Whitelist is a plain string in the UI (e.g. "784" or "784,220").
+WHITELIST_RAW="$(bashio::config 'whitelist')"
+WHITELIST=()
+if [[ -n "${WHITELIST_RAW}" && "${WHITELIST_RAW}" != "null" ]]; then
+    # Allow commas and/or spaces: "784", "784,220", "784 220"
+    WHITELIST_RAW="${WHITELIST_RAW//,/ }"
+    # shellcheck disable=SC2206
+    WHITELIST_CANDIDATES=(${WHITELIST_RAW})
+    normalize_int_list WHITELIST_CANDIDATES WHITELIST
+fi
 
 # Prefer Supervisor MQTT service discovery when using the default broker
 # host and no username was set in the add-on options. Explicit credentials

@@ -1,5 +1,5 @@
 name: RTL433 Acurite Bridge
-version: "0.1.22"
+version: "0.1.23"
 slug: rtl433_acurite_bridge
 description: Modern rtl_433 MQTT bridge for Acurite weather stations.
 url: https://github.com/dcsubie/RTL433-Acurite-Bridge
@@ -26,7 +26,7 @@ options:
   mqtt_username: ""
   mqtt_password: ""
   mqtt_topic: rtl_433
-  whitelist: []
+  whitelist: ""
   protocols: [11, 40, 41, 55, 74]
   units: si
 
@@ -36,8 +36,9 @@ schema:
   mqtt_username: str?
   mqtt_password: password?
   mqtt_topic: str
-  whitelist:
-    - int
+  # Plain string so the HA UI is a simple text box (e.g. "784" or "784,220").
+  # A list schema made the UI easy to mis-save as a bare integer.
+  whitelist: str
   protocols:
     - int
   units: list(si|custom)

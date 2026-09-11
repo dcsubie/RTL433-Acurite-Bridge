@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.23
+
+- Change `whitelist` to a plain text option so the Home Assistant UI accepts
+  values like `784` or `784,220` (list schema was easy to mis-save as a bare
+  integer and failed with "Invalid list")
+
 ## 0.1.22
 
 - Fix rtl_433 `-R` flags: one protocol number per `-R` (`-R 11 -R 40 -R 41 -R 55 -R 74`)
