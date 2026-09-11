@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.22
+
+- Fix rtl_433 `-R` flags: one protocol number per `-R` (`-R 11 -R 40 -R 41 -R 55 -R 74`)
+- Stop exporting a CSV string back onto the `PROTOCOLS` array (that replaced
+  index 0 with `11,40,41,55,74` and left the rest, causing the protocol 11
+  "does not take arguments" warning)
+
 ## 0.1.21
 
 - Restore the **0.1.6** add-on runtime (bashio array parsing fix era)

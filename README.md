@@ -43,7 +43,7 @@ Full option reference, protocol table, and troubleshooting are in the add-on **D
 
 ## Status
 
-**v0.1.21** — rollback to 0.1.6 runtime (bashio protocols/whitelist fix).
+**v0.1.22** — correct rtl_433 `-R` flags (`-R 11 -R 40 ...`, not a CSV blob).
 
 ## Planned Features
 
